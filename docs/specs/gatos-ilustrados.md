@@ -34,12 +34,12 @@ The owner's next correction on 2026-10-25 extends this same visual result: minim
 - Boxes, yarn, clouds, flowers, hearts, sparks and sleep marks retain their functions. The gym and butterflies receive new drawing; blanket decoration sits behind actors.
 - Jump timing and poses change to meet the latest explicit request. Keep the original deterministic trace fixture as historical evidence; test new motion against continuous-trajectory, phase, endpoint and interaction invariants rather than replacing its digest with one generated from the new implementation.
 - Supplementary poses must follow the approved character reference. Verify actual PNG alpha; the initial preview's apparent colored background was not evidence of opacity.
-- No runtime packages, backend, tracking, publication or remote writes.
-- Final rendered visual acceptance remains pending the user; approval of the design authorizes implementation.
+- No runtime packages, backend or tracking. On 2026-10-25 the owner explicitly authorized push and publication through the existing GitHub Pages configuration (main, repository root).
+- Final rendered visual result accepted by the owner on 2026-10-25: “Me gusta cómo quedó. Pusheá los cambios y publicá esta versión en GitHub Pages.”
 
 ## Out of scope
 
-New gameplay, a redesigned interface, subscriptions, backend services, broad repository standardization and public deployment.
+New gameplay, a redesigned interface, subscriptions, backend services and broad repository standardization.
 
 ## Slices
 
@@ -62,7 +62,7 @@ New gameplay, a redesigned interface, subscriptions, backend services, broad rep
 
 Previous review: accepted for ece4d72 — substantive self-review of the original illustration integration. This evidence predates the owner's requested eight varieties and motion/detail corrections and does not certify the revised implementation.
 
-Visual acceptance: pending the user — design approved; implemented park available for evaluation.
+Visual acceptance: accepted 2026-10-25 — the owner approved the rendered version and requested its publication. The verification records below retain their state at the time of inspection.
 
 ### UI verification: illustrated park
 
@@ -171,3 +171,5 @@ Look and differences: the approved landscape stays unchanged. Five additional co
 Visual inspection: passed — final HTTP render, contact sheets, gym/box and responsive captures inspected. Human visual acceptance and direct disk verification remain pending.
 
 Review: accepted for the verified HTTP implementation — substantive self-review against ece4d72, including all new drawing code, motion transitions, tests, generated metadata and documentation. This is a reversible local animation change without data, external consumers or new trust boundaries, so independent review is not required. Existing drawing helpers were examined before adding the scenery module; original fallback remains. Historical test change is justified above. No blocking finding in the implemented HTTP scope; the spec stays open for visual acceptance and the explicitly unverified file: path. No remote publication requested.
+
+Publication decision, 2026-10-25: the subsequent explicit request accepts the visual result and authorizes publishing the reviewed HTTP implementation. The repository was clean at 83b01ac; origin/main was still 5cf72af, with no divergent commits. Pages already serves main at `/`. Prior implementation evidence remains applicable because this publication changes no runtime files. The remaining file: verification limit is unrelated to the requested HTTPS deployment and is not reported as resolved. This documentation-only acceptance update was self-reviewed against the owner's message.
