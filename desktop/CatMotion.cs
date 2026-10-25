@@ -11,6 +11,8 @@ internal sealed class CatMotion
     public double Squash { get; private set; } = 1;
     public int Coat { get; }
     private double time;
+    public double Depth { get; private set; }
+    private double stride, hopTime, hopDuration, hopX, hopDepth, hopTargetX, hopTargetDepth;
     private const double Speed = 32, Gravity = 620, Impulse = 245;
     public const double AirTime = 2 * Impulse / Gravity;
 
@@ -22,6 +24,50 @@ internal sealed class CatMotion
     }
 
     public static double JumpHeight(double seconds) => Math.Max(0, Impulse * seconds - Gravity * seconds * seconds / 2);
+
+    public void ResumeDesktop() { time = 0; Depth = 0; Height = 0; Pose = "standing"; Squash = 1; }
+    public void Rest(double elapsed, int kind)
+    {
+        Pose = kind == 0 ? "sit" : kind == 1 ? "sleep" : (int)(elapsed * 3) % 2 == 0 ? "groomA" : "groomB";
+        Squash = 1;
+    }
+    public bool FinishJump(double dt, double width)
+    {
+        if (hopDuration > 0) { MoveTo(hopTargetX, hopTargetDepth, dt, width); return false; }
+        if (Height > 0) { Advance(dt, width); return false; }
+        Height = 0; Squash = 1; Pose = "standing"; return true;
+    }
+    public bool MoveTo(double x, double depth, double dt, double width, bool hop = false)
+    {
+        x = Math.Clamp(x, 70, Math.Max(70, width - 70));
+        if (hopDuration > 0)
+        {
+            hopTime = Math.Min(hopDuration, hopTime + dt);
+            double fraction = hopTime / hopDuration;
+            X = hopX + (hopTargetX - hopX) * fraction;
+            Depth = hopDepth + (hopTargetDepth - hopDepth) * fraction;
+            Height = 4 * 55 * fraction * (1 - fraction);
+            Pose = fraction < .3 ? "jumpRise" : fraction < .65 ? "jumpTuck" : "jumpFall";
+            if (hopTime >= hopDuration) { hopDuration = 0; Height = 0; Pose = "landing"; }
+            return false;
+        }
+        if (!FinishJump(dt, width)) return false;
+        double dx = x - X, dy = depth - Depth, distance = Math.Sqrt(dx * dx + dy * dy);
+        if (distance < .01) { X = x; Depth = depth; return true; }
+        if (Math.Abs(dx) > .01) Direction = dx > 0 ? 1 : -1;
+        if (hop && Math.Abs(dy) > 2)
+        {
+            hopTime = 0; hopDuration = Math.Clamp(distance / 190, .6, 1.1);
+            hopX = X; hopDepth = Depth; hopTargetX = x; hopTargetDepth = depth; Pose = "crouch";
+            return false;
+        }
+        double travel = Math.Min(distance, 90 * dt);
+        if (travel >= distance) { X = x; Depth = depth; }
+        else { X += dx / distance * travel; Depth += dy / distance * travel; }
+        stride += travel;
+        Pose = (int)(stride / 12) % 2 == 0 ? "walkA" : "walkB";
+        return travel >= distance;
+    }
 
     public void Advance(double dt, double width)
     {

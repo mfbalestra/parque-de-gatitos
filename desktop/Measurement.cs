@@ -24,8 +24,9 @@ internal sealed class Measurement : IDisposable
     private long framesStart, stepsStart;
     private readonly List<long> resident = new(), committed = new();
     private int foregroundSamples;
+    private readonly bool parkRun;
 
-    public Measurement(OverlayWindow window, string output) { this.window = window; this.output = output; timer.Tick += (_, _) => Tick(); }
+    public Measurement(OverlayWindow window, string output, bool parkRun) { this.window = window; this.output = output; this.parkRun = parkRun; timer.Tick += (_, _) => Tick(); }
     public void Start() { clock.Start(); timer.Start(); }
 
     private void Begin()
@@ -42,7 +43,7 @@ internal sealed class Measurement : IDisposable
         if (foreground) foregroundSamples++;
         samples.Add(new { timestampUtc = DateTime.UtcNow, elapsed = clock.Elapsed.TotalSeconds, state = window.Hidden ? "hidden" : "visible",
             cpuSeconds = process.TotalProcessorTime.TotalSeconds, residentBytes = process.WorkingSet64,
-            privateBytes = process.PrivateMemorySize64, frames = window.Frames, steps = window.Steps, foreground });
+            privateBytes = process.PrivateMemorySize64, frames = window.Frames, steps = window.Steps, foreground, scene = window.Scene });
     }
 
     private void End(string state)
@@ -62,7 +63,7 @@ internal sealed class Measurement : IDisposable
         double now = clock.Elapsed.TotalSeconds;
         switch (stage)
         {
-            case 0 when now >= 5: Begin(); stage = 1; break;
+            case 0 when now >= 5 && (!parkRun || window.Scene == nameof(ParkPhase.Visiting)): Begin(); stage = 1; break;
             case 1:
                 Sample();
                 if (now - phaseStart >= 20) { End("visible"); window.SetHidden(true); phaseStart = now; stage = 2; }
@@ -79,7 +80,7 @@ internal sealed class Measurement : IDisposable
                         os = Environment.OSVersion.VersionString, renderTier = RenderCapability.Tier >> 16,
                         widthDip = window.Width, heightDip = window.Height, dpiScale = dpi.DpiScaleX,
                         styles = $"0x{Native.GetWindowLongPtr(window.Handle, -20).ToInt64():X}",
-                        overlayActivations = window.Activations, phases, samples };
+                        overlayActivations = window.Activations, sceneMode = parkRun ? "park" : "desktop", visits = window.Visits, phases, samples };
                     File.WriteAllText(output, JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
                     stage = 4; timer.Stop(); window.Close();
                 }

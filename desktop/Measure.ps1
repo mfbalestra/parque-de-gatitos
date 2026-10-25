@@ -1,7 +1,8 @@
 param(
     [Parameter(Mandatory=$true)][string]$OutputDirectory,
     [int]$Repetitions = 2,
-    [ValidateSet(1,4,8)][int[]]$Counts = @(1,4,8)
+    [ValidateSet(1,4,8)][int[]]$Counts = @(1,4,8),
+    [switch]$Park
 )
 $ErrorActionPreference = 'Stop'
 if ($Repetitions -lt 1 -or $Repetitions -gt 5) { throw 'Repetitions debe estar entre 1 y 5.' }
@@ -15,6 +16,7 @@ for ($run = 1; $run -le $Repetitions; $run++) {
         $gpuPath = Join-Path $resultDirectory "gpu-$count-run-$run.json"
         if ((Test-Path -LiteralPath $resultPath) -or (Test-Path -LiteralPath $gpuPath)) { throw 'Ya hay resultados para esta cantidad y repetición. Usá otra carpeta.' }
         $arguments = @('--cats', [string]$count, '--output', ('"' + $resultPath + '"'))
+        if ($Park) { $arguments += '--park-now' }
         $measurementProcess = Start-Process -FilePath $nativeExe -ArgumentList $arguments -PassThru
         $gpuSamples = [Collections.Generic.List[object]]::new()
         $gpuError = $null

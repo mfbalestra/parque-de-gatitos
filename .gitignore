@@ -1,3 +1,5 @@
 /.local/
 /desktop/bin/
 /desktop/obj/
+/tests/native/bin/
+/tests/native/obj/

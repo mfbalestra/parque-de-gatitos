@@ -1,6 +1,18 @@
 # Gatitos en Windows: prueba nativa
 
-Una aplicación C# con WPF muestra uno, cuatro u ocho gatos sobre el borde inferior del monitor principal. Caminan, se preparan para saltar, saltan con gravedad, aterrizan, se sientan, se acicalan y duermen. Usa las ilustraciones y los recortes del parque web. Esta prueba permite evaluar la compañía en el escritorio y su consumo; no traslada todavía todos los juegos del parque.
+Una aplicación C# con WPF muestra uno, cuatro u ocho gatos sobre el borde inferior del monitor principal. Caminan, se preparan para saltar, saltan con gravedad, aterrizan, se sientan, se acicalan y duermen. Periódicamente aparece el parque sobre el área de trabajo: los mismos gatos entran, recorren el césped y la estructura, descansan y regresan al escritorio. Usa las ilustraciones y los recortes del parque web. Esta integración nativa no traslada todavía todos los juegos ni las interacciones del navegador.
+
+## Visitas al parque
+
+La configuración inicial es **30 minutos de compañía y 5 minutos de estadía**. En **Controles**, cambiá «Compañía» (1 a 240 minutos) y «Estadía» (1 a 60), y elegí **Guardar tiempos**. Se aceptan minutos enteros. Los cambios se aplican al ciclo actual: si el tiempo nuevo ya transcurrió, la transición comienza al reanudar. Los valores se guardan en `gatitos-settings.json`, junto al ejecutable. La carpeta debe permitir escritura; si no, el panel avisa y conserva los tiempos anteriores. Un archivo de configuración externo inválido impide el inicio con un mensaje; puede corregirse o retirarse para volver a los valores iniciales.
+
+El parque aparece gradualmente durante dos segundos y cubre el área útil del monitor principal, dejando la barra de tareas disponible. Los gatos que estaban saltando terminan su salto; después caminan hacia el césped. La estadía empieza cuando todos llegaron. Algunos recorren los escalones y descansan en la estructura; los demás pasean, duermen y se acicalan. Las mariposas se mueven de forma independiente.
+
+Cuando termina la estadía, los gatos bajan de la estructura, vuelven al borde del escritorio y el parque desaparece gradualmente. Entonces comienza un intervalo nuevo. **Ir al parque ahora** y **Volver al escritorio** adelantan el recorrido desde el panel o la bandeja. Pedir volver durante la entrada conserva las posiciones; pedir otra visita durante la salida la deja preparada para después de completar la vuelta. La cantidad de gatos se cambia durante la compañía en el escritorio.
+
+El parque tapa visualmente los programas, pero los clics siguen llegando a lo que hay debajo. No bloquea el teclado, no toma el foco y no se incluye en Alt+Tab. Usá **Ocultar** para ver el programa inferior. El panel de controles puede quedar por encima del parque y se abre como una ventana normal. Pausar u ocultar detiene tanto las animaciones como el reloj; al volver continúa desde allí. Los intervalos de suspensión del equipo no disparan visitas acumuladas.
+
+Para ver la escena directamente al iniciar: `Gatitos.Windows.exe --cats 8 --panel --park-now`. El paquete «Parque ahora» usa esta opción; el inicio normal respeta el intervalo configurado.
 
 ## Usarla
 
@@ -48,10 +60,16 @@ Ese editor de ejemplo registra únicamente los clics, teclas y texto que recibe 
 
 ## Qué está cubierto
 
-El resultado local y sus límites quedan en [VERIFICACION.md](VERIFICACION.md). No se comprobaron otros monitores, escalas de pantalla, escritorios virtuales, juegos exclusivos, escritorio seguro ni sesiones remotas. No se implementó detección automática de pantalla completa; se puede ocultar manualmente. La prueba no registra el inicio automático ni instala servicios.
+La integración y sus límites quedan en [VERIFICACION-PARQUE.md](VERIFICACION-PARQUE.md); [VERIFICACION.md](VERIFICACION.md) conserva la prueba anterior. No se comprobaron otros monitores, escalas de pantalla, escritorios virtuales, juegos exclusivos, escritorio seguro ni sesiones remotas. No se implementó detección automática de pantalla completa; se puede ocultar manualmente. La prueba no registra el inicio automático ni instala servicios.
 
 ## Mantener el prototipo
 
 `OverlayWindow.cs` contiene la ventana pasiva y los controles; `CatMotion.cs`, el movimiento determinista; `SpriteCatalog.cs`, la lectura de los recortes canónicos. No dividir las láminas en celdas iguales: sus recortes y máscaras son irregulares. Los estilos nativos de ventana son necesarios además de desactivar las pruebas de impacto de WPF. No agregar captura de entrada para implementar interacciones sin acordar primero cómo convivirían con las otras aplicaciones.
 
 El modo de medición es diagnóstico local y no representa consumo universal. Comparar con Electron o Tauri requiere medir una aplicación equivalente, con el mismo arte, escena, tamaño y equipo.
+
+La medición con `--park-now --output archivo.json` espera a que todos hayan llegado antes de recoger la fase visible. El resultado identifica `sceneMode` y el estado de cada muestra. Los resultados del prototipo anterior, en `measurement-summary.json`, son históricos; la integración tiene su propia serie en `park-measurement-summary.json`.
+
+El ciclo y sus reglas viven en `ParkCycle.cs`; `ParkScene.cs` dibuja el fondo y las mariposas. El fondo incluye las mantitas y la estructura originales: `node desktop/build-scenery.cjs <node_modules global>` exporta `assets/parque.png` y `park-details.js` a una sola imagen de 1536 × 864. Playwright sólo se usa para esa exportación de desarrollo. El programa entregado usa WPF y no incluye un navegador. Al salir del parque se suelta la referencia a su imagen; la devolución efectiva de memoria depende del runtime.
+
+La corrección de caminata con ocho cuadros por ciclo, el selector de 30/60 FPS y la optimización general de las láminas siguen siendo propuestas pendientes. Esta integración mantiene las poses existentes y el objetivo de 30 FPS; sincroniza los pasos del traslado con la distancia, pero no agrega los dibujos que faltan.

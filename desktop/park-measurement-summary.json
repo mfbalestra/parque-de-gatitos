@@ -1,0 +1,265 @@
+{
+  "date": "2026-10-25",
+  "binarySha256": "e19105ae152ef183d459f1869683815d4ce745c4c3dbafe0b404514ed9ce7ebd",
+  "method": "One fresh process per scene/count; >=20 seconds visible, >=10 hidden. Park sample begins after entry.",
+  "runs": [
+    {
+      "mode": "escritorio",
+      "cats": 1,
+      "visible": {
+        "state": "visible",
+        "elapsedSeconds": 20.1271341,
+        "cpuSeconds": 0.59375,
+        "cpuPercentOneCore": 2.949997734650161,
+        "cpuPercentMachine": 0.18437485841563506,
+        "residentMeanMiB": 190.994921875,
+        "residentPeakMiB": 193.2734375,
+        "privateMeanMiB": 151.63125,
+        "privatePeakMiB": 154.578125,
+        "renderedFrames": 543,
+        "simulationSteps": 543,
+        "renderedFps": 26.97850559856905,
+        "foregroundSamples": 0
+      },
+      "hidden": {
+        "state": "hidden",
+        "elapsedSeconds": 10.010397799999996,
+        "cpuSeconds": 0.046875,
+        "cpuPercentOneCore": 0.4682631093841248,
+        "cpuPercentMachine": 0.0292664443365078,
+        "residentMeanMiB": 193.70859375,
+        "residentPeakMiB": 193.76953125,
+        "privateMeanMiB": 154.566015625,
+        "privatePeakMiB": 154.59375,
+        "renderedFrames": 0,
+        "simulationSteps": 0,
+        "renderedFps": 0,
+        "foregroundSamples": 0
+      },
+      "overlayActivations": 0,
+      "runtime": "10.0.14",
+      "gpu": {
+        "samples": 14,
+        "mean": 0.24804855050554167,
+        "peak": 0.34732084288336845,
+        "error": null,
+        "warnings": 1
+      }
+    },
+    {
+      "mode": "escritorio",
+      "cats": 4,
+      "visible": {
+        "state": "visible",
+        "elapsedSeconds": 20.2788622,
+        "cpuSeconds": 1.328125,
+        "cpuPercentOneCore": 6.549307288058795,
+        "cpuPercentMachine": 0.4093317055036747,
+        "residentMeanMiB": 197.794921875,
+        "residentPeakMiB": 201.6171875,
+        "privateMeanMiB": 173.0001953125,
+        "privatePeakMiB": 178.70703125,
+        "renderedFrames": 536,
+        "simulationSteps": 536,
+        "renderedFps": 26.43146320112575,
+        "foregroundSamples": 0
+      },
+      "hidden": {
+        "state": "hidden",
+        "elapsedSeconds": 10.007437799999998,
+        "cpuSeconds": 0.15625,
+        "cpuPercentOneCore": 1.561338707496139,
+        "cpuPercentMachine": 0.09758366921850868,
+        "residentMeanMiB": 202.0796875,
+        "residentPeakMiB": 202.12109375,
+        "privateMeanMiB": 177.490234375,
+        "privatePeakMiB": 178.828125,
+        "renderedFrames": 0,
+        "simulationSteps": 0,
+        "renderedFps": 0,
+        "foregroundSamples": 0
+      },
+      "overlayActivations": 0,
+      "runtime": "10.0.14",
+      "gpu": {
+        "samples": 15,
+        "mean": 0.30128364837784377,
+        "peak": 0.3705729867363226,
+        "error": null,
+        "warnings": 1
+      }
+    },
+    {
+      "mode": "escritorio",
+      "cats": 8,
+      "visible": {
+        "state": "visible",
+        "elapsedSeconds": 20.1006123,
+        "cpuSeconds": 1.671875,
+        "cpuPercentOneCore": 8.317532695260233,
+        "cpuPercentMachine": 0.5198457934537646,
+        "residentMeanMiB": 226.2171875,
+        "residentPeakMiB": 231.15234375,
+        "privateMeanMiB": 214.97578125,
+        "privatePeakMiB": 227.44140625,
+        "renderedFrames": 539,
+        "simulationSteps": 539,
+        "renderedFps": 26.815103537915608,
+        "foregroundSamples": 0
+      },
+      "hidden": {
+        "state": "hidden",
+        "elapsedSeconds": 10.094700499999995,
+        "cpuSeconds": 0.03125,
+        "cpuPercentOneCore": 0.3095683720383781,
+        "cpuPercentMachine": 0.019348023252398632,
+        "residentMeanMiB": 231.609375,
+        "residentPeakMiB": 231.65625,
+        "privateMeanMiB": 226.25234375,
+        "privatePeakMiB": 226.30078125,
+        "renderedFrames": 0,
+        "simulationSteps": 0,
+        "renderedFps": 0,
+        "foregroundSamples": 0
+      },
+      "overlayActivations": 0,
+      "runtime": "10.0.14",
+      "gpu": {
+        "samples": 14,
+        "mean": 0.3399607465455214,
+        "peak": 0.48197558786431377,
+        "error": null,
+        "warnings": 1
+      }
+    },
+    {
+      "mode": "parque",
+      "cats": 1,
+      "visible": {
+        "state": "visible",
+        "elapsedSeconds": 20.0243732,
+        "cpuSeconds": 1.4375,
+        "cpuPercentOneCore": 7.17875154264504,
+        "cpuPercentMachine": 0.448671971415315,
+        "residentMeanMiB": 220.890234375,
+        "residentPeakMiB": 224.1875,
+        "privateMeanMiB": 194.0345703125,
+        "privatePeakMiB": 198.33203125,
+        "renderedFrames": 546,
+        "simulationSteps": 546,
+        "renderedFps": 27.266771076759596,
+        "foregroundSamples": 0
+      },
+      "hidden": {
+        "state": "hidden",
+        "elapsedSeconds": 10.021845800000001,
+        "cpuSeconds": 0.09375,
+        "cpuPercentOneCore": 0.9354564206126579,
+        "cpuPercentMachine": 0.05846602628829112,
+        "residentMeanMiB": 224.805859375,
+        "residentPeakMiB": 224.90625,
+        "privateMeanMiB": 198.46640625,
+        "privatePeakMiB": 198.484375,
+        "renderedFrames": 0,
+        "simulationSteps": 0,
+        "renderedFps": 0,
+        "foregroundSamples": 0
+      },
+      "overlayActivations": 0,
+      "runtime": "10.0.14",
+      "gpu": {
+        "samples": 15,
+        "mean": 1.114435811938802,
+        "peak": 1.2575620605695514,
+        "error": null,
+        "warnings": 1
+      }
+    },
+    {
+      "mode": "parque",
+      "cats": 4,
+      "visible": {
+        "state": "visible",
+        "elapsedSeconds": 20.139299700000002,
+        "cpuSeconds": 1.359375,
+        "cpuPercentOneCore": 6.749862310256995,
+        "cpuPercentMachine": 0.42186639439106216,
+        "residentMeanMiB": 230.620703125,
+        "residentPeakMiB": 235.09765625,
+        "privateMeanMiB": 211.5607421875,
+        "privatePeakMiB": 218.12890625,
+        "renderedFrames": 580,
+        "simulationSteps": 580,
+        "renderedFps": 28.799412523763174,
+        "foregroundSamples": 0
+      },
+      "hidden": {
+        "state": "hidden",
+        "elapsedSeconds": 10.048183900000005,
+        "cpuSeconds": 0.0625,
+        "cpuPercentOneCore": 0.6220029472191484,
+        "cpuPercentMachine": 0.038875184201196775,
+        "residentMeanMiB": 235.609375,
+        "residentPeakMiB": 235.703125,
+        "privateMeanMiB": 218.22421875,
+        "privatePeakMiB": 218.29296875,
+        "renderedFrames": 0,
+        "simulationSteps": 0,
+        "renderedFps": 0,
+        "foregroundSamples": 0
+      },
+      "overlayActivations": 0,
+      "runtime": "10.0.14",
+      "gpu": {
+        "samples": 15,
+        "mean": 1.1483198980457545,
+        "peak": 1.2744002730815436,
+        "error": null,
+        "warnings": 1
+      }
+    },
+    {
+      "mode": "parque",
+      "cats": 8,
+      "visible": {
+        "state": "visible",
+        "elapsedSeconds": 20.1058297,
+        "cpuSeconds": 1.6875,
+        "cpuPercentOneCore": 8.393088100214039,
+        "cpuPercentMachine": 0.5245680062633774,
+        "residentMeanMiB": 256.8908203125,
+        "residentPeakMiB": 263.44921875,
+        "privateMeanMiB": 245.6265625,
+        "privatePeakMiB": 255.515625,
+        "renderedFrames": 561,
+        "simulationSteps": 561,
+        "renderedFps": 27.90235510648934,
+        "foregroundSamples": 0
+      },
+      "hidden": {
+        "state": "hidden",
+        "elapsedSeconds": 10.020401700000004,
+        "cpuSeconds": 0.078125,
+        "cpuPercentOneCore": 0.7796593623586964,
+        "cpuPercentMachine": 0.04872871014741852,
+        "residentMeanMiB": 263.818359375,
+        "residentPeakMiB": 263.8671875,
+        "privateMeanMiB": 255.5578125,
+        "privatePeakMiB": 255.5703125,
+        "renderedFrames": 0,
+        "simulationSteps": 0,
+        "renderedFps": 0,
+        "foregroundSamples": 0
+      },
+      "overlayActivations": 0,
+      "runtime": "10.0.14",
+      "gpu": {
+        "samples": 15,
+        "mean": 1.1441320702651359,
+        "peak": 1.3249568342885871,
+        "error": null,
+        "warnings": 1
+      }
+    }
+  ]
+}
