@@ -1,0 +1,59 @@
+{
+  "sourceCommit": "5cf72af5b7cd81d01d1abbb1aa3f1fe49ff326c6",
+  "sourceBlob": "fd5c3be48a33e88d3cdab8ef68d5fa619401de64",
+  "method": "200 simulated seconds, 60 steps per second; full physical state hashed every 30 frames; pointer throws every 240 frames in throws scenario",
+  "autonomous": {
+    "digest": "66d33f9b275bbcc7467cb3dd874a6c6516274dc2310190cb64b8b1270083cb1a",
+    "states": [
+      "box",
+      "chase",
+      "groom",
+      "gym",
+      "play",
+      "roll",
+      "scratch",
+      "sit",
+      "sleep",
+      "stretch",
+      "wander"
+    ],
+    "gymWaypoints": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  "throws": {
+    "digest": "815a131af4fc1277b80c4e0ca1cb1158b01d28502ba266eea1d4e80fad82815f",
+    "states": [
+      "box",
+      "chase",
+      "groom",
+      "gym",
+      "play",
+      "roll",
+      "scratch",
+      "sit",
+      "sleep",
+      "stretch",
+      "wander"
+    ],
+    "gymWaypoints": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  }
+}
