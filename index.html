@@ -26,6 +26,7 @@ canvas:focus-visible{outline:3px solid #fff;outline-offset:-6px;box-shadow:0 0 0
 </main>
 <script src="art-data.js"></script>
 <script src="scene-art.js"></script>
+<script src="park-details.js"></script>
 <script>
 (()=>{
 const cv=document.getElementById('pk'),g=cv.getContext('2d');
@@ -122,10 +123,10 @@ blk(152,162,0,16,'#1d9e75','#4cc39a','#0f5e48');disc(q,157-GX,GB-7,2,'#0b3d30');
 blk(160,187,21,24,'#e8577c','#f28aa6','#93304f');
 blk(176,201,37,40,'#8a6ad8','#a48ae6','#4a3a90');
 const gymE={kind:'gym',y:YB},box={kind:'box',x:58,y:134,cat:null};
-function drawGym(){g.drawImage(gym,GX,YB-GB);const a=Math.sin(t*2.2)*0.5;
+function drawGym(){if(window.PARK_DETAILS){window.PARK_DETAILS.drawGym(g,t);return}g.drawImage(gym,GX,YB-GB);const a=Math.sin(t*2.2)*0.5;
 for(let i=1;i<8;i++)px(g,185+Math.sin(a)*i,YB-37+Math.cos(a)*i,'#5f5e5a');const ex=Math.round(185+Math.sin(a)*8),ey=Math.round(YB-37+Math.cos(a)*8);disc(g,ex,ey+1,2,'#e8577c');px(g,ex-1,ey,'#f7b3c6')}
 function drawBox(o){const x=Math.round(o.x),y=Math.round(o.y);
-g.fillStyle='rgba(40,90,25,0.35)';g.fillRect(x-11,y-1,23,2);
+shadow(x,y,24,4,.2);
 g.fillStyle='#d9a35f';g.fillRect(x-9,y-16,18,3);g.fillStyle='#7a4a1e';g.fillRect(x-9,y-16,18,1);
 g.fillStyle='#7a4a1e';g.fillRect(x-11,y-13,22,4);g.fillStyle='#5a3414';g.fillRect(x-10,y-12,20,3);
 const c=o.cat;if(c&&c.at&&c.st==='box'){const fk=Math.floor(c.an*0.7)%3?'sit':'groomA',p=art&&art.pose(c,fk);
@@ -150,10 +151,47 @@ else if(r<.93&&!box.cat){c.st='box';box.cat=c;c.tm=15}
 else if(r<.97){c.st='scratch';c.tm=12}
 else{c.st='stretch';c.tm=1.5}}
 function moveTo(c,tx,ty,sp,dt){const dx=tx-c.x,dy=ty-c.y,d=Math.hypot(dx,dy);if(d<1)return d;const s=Math.min(d,sp*dt);c.x+=dx/d*s;c.y+=dy/d*s;if(Math.abs(dx)>0.6)c.dir=dx>0?1:-1;c.mv=true;return d}
+// Analytic ballistics keep the same trajectory at any frame rate. Preparation and
+// recovery keep paws on their support; behaviour resumes only after the landing.
+const JUMP={gravity:220,prepare:.16,landing:.10,recover:.14};
+function beginJump(c,x,y,z,lift,kind){
+  if(c.motion)return;
+  const peak=Math.max(c.z,z)+lift,up=Math.sqrt(2*JUMP.gravity*(peak-c.z));
+  const duration=(up+Math.sqrt(2*JUMP.gravity*(peak-z)))/JUMP.gravity;
+  c.motion={phase:'prepare',time:0,elapsed:0,fromX:c.x,fromY:c.y,fromZ:c.z,
+    x:Math.max(9,Math.min(W-9,x)),y:clampY(y),z,up,duration,kind};
+  if(Math.abs(x-c.x)>.1)c.dir=x>c.x?1:-1;
+  c.fk='crouch';c.vz=0;
+}
+function jumpPose(c){
+  const m=c.motion;c.deform={sx:1,sy:1,angle:0};
+  if(m.phase==='prepare'){c.fk='crouch';c.deform.sy=1-.06*Math.sin(Math.PI*m.time/JUMP.prepare);}
+  else if(m.phase==='air'){
+    const p=m.elapsed/m.duration;
+    c.fk=p<.3?'jumpRise':p<.67?'jumpTuck':'jumpFall';
+    c.deform.angle=(p-.5)*.12*c.dir;
+  }else if(m.phase==='landing'){c.fk='landing';c.deform.sy=.92;c.deform.sx=1.04;}
+  else{const p=Math.min(1,m.time/JUMP.recover);c.fk='crouch';c.deform.sy=.94+.06*p;}
+}
+function advanceJump(c,dt){
+  const m=c.motion;m.time+=dt;c.mv=m.phase==='air';
+  if(m.phase==='prepare'&&m.time>=JUMP.prepare){m.phase='air';m.time=0;c.vz=m.up;}
+  else if(m.phase==='air'){
+    m.elapsed=Math.min(m.duration,m.elapsed+dt);const p=m.elapsed/m.duration;
+    c.x=m.fromX+(m.x-m.fromX)*p;c.y=m.fromY+(m.y-m.fromY)*p;
+    c.z=m.fromZ+m.up*m.elapsed-.5*JUMP.gravity*m.elapsed*m.elapsed;c.vz=m.up-JUMP.gravity*m.elapsed;
+    if(m.elapsed>=m.duration){c.x=m.x;c.y=m.y;c.z=m.z;c.vz=0;m.phase='landing';m.time=0;}
+  }else if(m.phase==='landing'&&m.time>=JUMP.landing){m.phase='recover';m.time=0;}
+  else if(m.phase==='recover'&&m.time>=JUMP.recover){
+    if(m.kind==='gym'){c.gi++;c.gp=0;if(GYM[c.gi].perch&&rnd()<.8)c.pt=R(2,6);}
+    c.motion=null;c.deform=null;c.fk=null;return;
+  }
+  jumpPose(c);
+}
 function startPlay(a,o){if(!FREE.includes(o.st)){choose(a);return}a.st='play';a.tgt=o;a.tm=R(2,4);if(o.st!=='play'){o.st='play';o.tgt=a;o.tm=a.tm}
-if(Math.abs(a.x-o.x)<11)a.x=o.x+(a.x<o.x?-11:11);a.y=o.y+R(-2,2);hearts.push({x:(a.x+o.x)/2,y:Math.min(a.y,o.y)-16,t:0})}
+hearts.push({x:(a.x+o.x)/2,y:Math.min(a.y,o.y)-16,t:0})}
 function updCat(c,dt){c.mv=false;c.tm-=dt;c.an+=dt;let fk=null,fd=null;
-if(!c.onS&&(c.z>0||c.vz)){c.vz-=240*dt;c.z+=c.vz*dt;if(c.z<=0){c.z=0;c.vz=0}}
+if(c.motion){advanceJump(c,dt);return}
 switch(c.st){
 case'wander':if(moveTo(c,c.tx,c.ty,c.sp,dt)<1.5||c.tm<0)choose(c);break;
 case'sit':if(c.tm<0)choose(c);break;
@@ -161,25 +199,26 @@ case'sleep':if(rnd()<dt*0.7)zs.push({x:c.x+c.dir*4,y:c.y-11,t:0});if(c.tm<0){c.s
 case'stretch':fk='stretch';if(c.tm<0)choose(c);break;
 case'groom':fk=Math.floor(c.an*3)%2?'groomB':'groomA';if(c.tm<0)choose(c);break;
 case'roll':{const ph=Math.floor(c.an*4)%4;fk=ph%2?'belly':'sleep';fd=ph<2?c.dir:-c.dir;c.x+=c.dir*5*dt;if(rnd()<dt*0.6)hearts.push({x:c.x,y:c.y-14,t:0});if(c.tm<0)choose(c);break}
-case'scratch':if(!c.at){if(moveTo(c,182,YB+0.6,c.sp,dt)<1.5){c.at=1;c.tm=R(2,4)}else if(c.tm<0)choose(c)}else{fk='scratch';fd=1;if(c.tm<0)choose(c)}break;
-case'box':if(!c.at){if(moveTo(c,box.x,box.y-0.5,c.sp,dt)<1.5){c.at=1;c.tm=R(4,9)}else if(c.tm<0){box.cat=null;choose(c)}}else if(c.tm<0){box.cat=null;c.y=box.y+3;c.vz=70;choose(c)}break;
+case'scratch':if(!c.at){if(moveTo(c,182,YB+0.6,c.sp,dt)<1.5){c.at=1;c.tm=R(2,4)}else if(c.tm<0)choose(c)}else{fk=Math.floor(c.an*5)%2?'scratchA':'scratchB';fd=1;if(c.tm<0)choose(c)}break;
+case'box':if(!c.at){if(moveTo(c,box.x,box.y-0.5,c.sp,dt)<1.5){c.at=1;c.tm=R(4,9)}else if(c.tm<0){box.cat=null;choose(c)}}else if(c.tm<0){box.cat=null;c.at=0;c.st='wander';c.tx=c.x+c.dir*25;c.ty=clampY(c.y+5);c.tm=3;beginJump(c,c.x+c.dir*15,c.y+3,0,11,'box');}break;
 case'gym':{if(!c.onS){if(moveTo(c,GYM[0].x,YB+0.5,c.sp,dt)<1.5){c.onS=true;c.gi=0;c.gp=0;c.z=0;c.vz=0;c.y=YB+0.5}else if(c.tm<0)choose(c);break}
 if(c.pt>0){c.pt-=dt;fk=(c.pt%3)<1.2?(Math.floor(c.an*3)%2?'groomB':'groomA'):'sit';break}
 const a=GYM[c.gi],e=GYM[c.gi+1];
 if(!e){c.onS=false;c.z=0;c.st='wander';c.tx=R(150,W-12);c.ty=R(YB+2,YMAX);c.tm=4;break}
-const len=Math.hypot(e.x-a.x,e.z-a.z),sp=e.slide?75:e.h?34:26;c.gp+=sp*dt/len;const p=Math.min(1,c.gp);
-c.x=a.x+(e.x-a.x)*p;c.z=a.z+(e.z-a.z)*p+(e.h?Math.sin(p*Math.PI)*5:0);c.dir=e.x>=a.x?1:-1;c.mv=true;
-fk=e.slide?'sit':e.h?'walkB':(Math.floor(c.an*7)%2?'walkB':'walkA');
+if(e.h){beginJump(c,e.x,c.y,e.z,4.5,'gym');break}
+const len=Math.hypot(e.x-a.x,e.z-a.z),sp=e.slide?75:26;c.gp+=sp*dt/len;const p=Math.min(1,c.gp);
+c.x=a.x+(e.x-a.x)*p;c.z=a.z+(e.z-a.z)*p;c.dir=e.x>=a.x?1:-1;c.mv=true;
+fk=e.slide?'sit':(Math.floor(c.an*7)%2?'walkB':'walkA');
 if(e.slide&&rnd()<dt*14)sparks.push({x:c.x-6,y:c.y-c.z-3,t:0});
 if(p>=1){c.gi++;c.gp=0;if(e.perch&&rnd()<.8)c.pt=R(2,6)}
 break}
 case'chase':{const t=c.tgt,ty=t.kind==='fly'?clampY(t.y+26):t.y,d=moveTo(c,t.x,ty,c.sp*1.7,dt);
 if(d<8){if(t.kind==='cat')startPlay(c,t);
-else if(t.kind==='ball'){t.vx=c.dir*R(55,95);t.vy=R(-25,25);c.vz=55;c.st='wander';c.tx=Math.max(12,Math.min(W-12,t.x+c.dir*30));c.ty=t.y;c.tm=3}
-else{c.vz=120;t.scare=1.2;c.st='sit';c.tm=R(1,2)}}
+else if(t.kind==='ball'){t.vx=c.dir*R(55,95);t.vy=R(-25,25);c.st='wander';c.tx=Math.max(12,Math.min(W-12,t.x+c.dir*30));c.ty=t.y;c.tm=3;beginJump(c,c.x+c.dir*11,c.y,0,6,'yarn');}
+else{t.scare=1.2;c.st='sit';c.tm=R(1,2);beginJump(c,c.x+c.dir*13,c.y,0,17,'butterfly');}}
 else if(c.tm<0)choose(c);break}
-case'play':{const o=c.tgt;c.dir=o.x>c.x?1:-1;if(c.z===0&&rnd()<dt*3)c.vz=R(45,85);if(rnd()<dt*1.2)hearts.push({x:(c.x+o.x)/2,y:Math.min(c.y,o.y)-16,t:0});if(c.tm<0||o.st!=='play'){c.st='wander';c.tgt=null;c.tx=R(12,W-12);c.ty=R(YMIN,YMAX);c.tm=R(4,8)}break}}
-c.x=Math.max(9,Math.min(W-9,c.x));c.y=clampY(c.y);c.fk=fk;c.fd=fd}
+case'play':{const o=c.tgt;c.dir=o.x>c.x?1:-1;if(c.z===0&&rnd()<dt*3)beginJump(c,c.x+c.dir*(Math.abs(o.x-c.x)>14?7:-5),c.y,0,R(4,9),'play');if(rnd()<dt*1.2)hearts.push({x:(c.x+o.x)/2,y:Math.min(c.y,o.y)-16,t:0});if(c.tm<0||o.st!=='play'){c.st='wander';c.tgt=null;c.tx=R(12,W-12);c.ty=R(YMIN,YMAX);c.tm=R(4,8)}break}}
+c.x=Math.max(9,Math.min(W-9,c.x));c.y=clampY(c.y);c.fk=fk;c.fd=fd;if(c.motion)jumpPose(c)}
 function updBall(o,dt){o.x+=o.vx*dt;o.y+=o.vy*dt;const f=Math.pow(0.25,dt);o.vx*=f;o.vy*=f;o.rot+=o.vx*dt*0.5;
 if(o.x<6||o.x>W-6){o.vx*=-1;o.x=Math.max(6,Math.min(W-6,o.x))}if(o.y<YMIN||o.y>YMAX){o.vy*=-1;o.y=clampY(o.y)}}
 function updFly(f,dt){f.a+=R(-1,1)*dt*4;f.t+=dt;let vx=Math.cos(f.a)*20,vy=Math.sin(f.a)*12;if(f.scare>0){vy-=40;f.scare-=dt}
@@ -187,15 +226,26 @@ f.x+=vx*dt;f.y+=vy*dt;if(f.x<6||f.x>W-6){f.a=Math.PI-f.a;f.x=Math.max(6,Math.min
 
 const HEART=[".X.X.","XXXXX",".XXX.","..X.."],ZED=["XXX",".X.","XXX"];
 function pat(p,x,y,col,s){g.fillStyle=col;p.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]==='X')g.fillRect(Math.round(x)+i*s,Math.round(y)+j*s,s,s)})}
+function shadow(x,y,w,h,opacity){
+if(window.PARK_DETAILS){window.PARK_DETAILS.shadow(g,x,y,w,h,opacity);return}
+g.save();g.translate(x,y);g.scale(w/2,h/2);const gradient=g.createRadialGradient(0,0,0,0,0,1);
+if(gradient){gradient.addColorStop(0,`rgba(40,70,30,${opacity})`);gradient.addColorStop(1,'rgba(40,70,30,0)');g.fillStyle=gradient;g.beginPath();g.arc(0,0,1,0,Math.PI*2);g.fill()}g.restore();
+}
 function drawCat(c){if(c.st==='box'&&c.at)return;
 const fk=c.fk||(c.st==='sleep'?'sleep':c.z>0?'walkB':c.mv?(Math.floor(c.an*7)%2?'walkB':'walkA'):'sit');
-const d=c.fd||c.dir,s=c.fr[fk][d>0?0:1],p=art&&art.pose(c,fk==='sit'&&c.st==='wander'?'standing':fk),w=p?p.width:s.width,bob=fk==='scratch'?Math.floor(c.an*6)%2:0,x=p?Math.max(w/2,Math.min(W-w/2,c.x)):c.x;
-if(!c.onS){g.fillStyle='rgba(40,90,25,0.35)';g.fillRect(Math.round(x-w/2)+2,Math.round(c.y)-1,w-4,2)}
-if(p)art.draw(g,p,x,c.y-c.z-bob,d)
-else g.drawImage(s,Math.round(c.x-w/2),Math.floor(c.y-s.height-c.z)-bob)}
-function drawBall(o){g.fillStyle='rgba(40,90,25,0.35)';g.fillRect(Math.round(o.x)-2,Math.round(o.y),5,1);disc(g,Math.round(o.x),Math.round(o.y)-3,2,o.c);
+const fallback={scratchA:'scratch',scratchB:'scratch',crouch:'stretch',landing:'stretch',jumpRise:'walkB',jumpTuck:'belly',jumpFall:'walkA'};
+const d=c.fd||c.dir,s=c.fr[fallback[fk]||fk][d>0?0:1],p=art&&art.pose(c,fk==='sit'&&c.st==='wander'?'standing':fk),w=p?p.width:s.width,x=p?Math.max(13,Math.min(W-13,c.x)):c.x;
+const m=c.motion,support=c.onS?c.z:0,altitude=Math.max(0,c.z-support);
+if(c.onS&&m){
+  const progress=m.elapsed/m.duration;
+  shadow(m.fromX,m.fromY-m.fromZ,15,3,.18*(1-progress)/(1+Math.max(0,c.z-m.fromZ)*.09));
+  shadow(m.x,m.y-m.z,15,3,.18*progress/(1+Math.max(0,c.z-m.z)*.09));
+}else shadow(x,c.y-support,Math.max(7,w*.75-altitude*.14),3,.2/(1+altitude*.09));
+if(p)art.draw(g,p,x,c.y-c.z,d,c.deform)
+else g.drawImage(s,Math.round(c.x-w/2),Math.floor(c.y-s.height-c.z))}
+function drawBall(o){shadow(o.x,o.y,6,2,.18);disc(g,Math.round(o.x),Math.round(o.y)-3,2,o.c);
 const a=o.rot;px(g,o.x+Math.cos(a)*1.4,o.y-3+Math.sin(a)*1.4,'#ffffff');px(g,o.x-Math.cos(a)*1.4,o.y-3-Math.sin(a)*1.4,'rgba(0,0,0,0.25)')}
-function drawFly(f){const open=Math.floor(f.t*12)%2;const x=Math.round(f.x),y=Math.round(f.y);g.fillStyle=f.c;
+function drawFly(f){if(window.PARK_DETAILS){window.PARK_DETAILS.drawButterfly(g,f,t);return}const open=Math.floor(f.t*12)%2;const x=Math.round(f.x),y=Math.round(f.y);g.fillStyle=f.c;
 if(open){g.fillRect(x-2,y-1,2,2);g.fillRect(x+1,y-1,2,2);g.fillRect(x-1,y+1,1,1);g.fillRect(x+1,y+1,1,1)}else{g.fillRect(x-1,y-2,1,2);g.fillRect(x+1,y-2,1,2)}
 g.fillStyle='#2e2a33';g.fillRect(x,y-1,1,3)}
 
@@ -209,6 +259,7 @@ function render(){const illustrated=art&&art.background(g,W,H);if(!illustrated)g
 if(!illustrated)for(let k=0;k<8;k++){const a=k*Math.PI/4+t*0.4,on=(Math.floor(t*2)+k)%2;if(on){px(g,214+Math.cos(a)*12,22+Math.sin(a)*12,'#ffd84a');px(g,214+Math.cos(a)*13.5,22+Math.sin(a)*13.5,'#ffe98a')}}
 clouds.forEach(c=>g.drawImage(cloud,Math.round(c.x),c.y));
 flowers.forEach(f=>{const sw=Math.round(Math.sin(t*2+f.p)*0.7);px(g,f.x,f.y,'#3f8a30');px(g,f.x+sw*0.5,f.y-1,'#3f8a30');const bx=f.x+sw,by=f.y-3;g.fillStyle=f.c;g.fillRect(bx-1,by,3,1);g.fillRect(bx,by-1,1,3);px(g,bx,by,'#ffe98a')});
+if(window.PARK_DETAILS)window.PARK_DETAILS.drawGround(g,t);
 [...cats,...balls,gymE,box].sort((a,b)=>a.y-b.y).forEach(o=>o.kind==='cat'?drawCat(o):o.kind==='ball'?drawBall(o):o.kind==='gym'?drawGym():drawBox(o));
 sparks.forEach(s=>{const y=s.y-s.t*6;g.fillStyle='#ffe98a';g.fillRect(Math.round(s.x),Math.round(y)-1,1,3);g.fillRect(Math.round(s.x)-1,Math.round(y),3,1)});
 flies.forEach(drawFly);
