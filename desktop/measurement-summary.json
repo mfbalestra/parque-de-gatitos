@@ -1,0 +1,224 @@
+{
+  "date": "2026-10-25",
+  "binarySha256": "22840907a0ec8685309a1d1ecd7216ea579c5beb8876d6d686370741a30c63db",
+  "hardware": {
+    "cpu": "AMD Ryzen 7 5700X",
+    "logicalProcessors": 16,
+    "gpu": "AMD Radeon RX 9060 XT",
+    "memoryGiB": 15.93,
+    "display": "1920×1080, 100%",
+    "os": "Windows 11 Pro 10.0.26300",
+    "runtime": "10.0.14"
+  },
+  "counts": [
+    {
+      "cats": 1,
+      "visible": [
+        {
+          "state": "visible",
+          "elapsedSeconds": 20.1688483,
+          "cpuSeconds": 0.890625,
+          "cpuPercentOneCore": 4.415844607250083,
+          "cpuPercentMachine": 0.2759902879531302,
+          "residentMeanMiB": 189.1107421875,
+          "residentPeakMiB": 191.34375,
+          "privateMeanMiB": 151.0841796875,
+          "privatePeakMiB": 154.1015625,
+          "renderedFrames": 575,
+          "simulationSteps": 575,
+          "renderedFps": 28.50931255207071,
+          "foregroundSamples": 0
+        },
+        {
+          "state": "visible",
+          "elapsedSeconds": 20.1706818,
+          "cpuSeconds": 0.90625,
+          "cpuPercentOneCore": 4.49290712622317,
+          "cpuPercentMachine": 0.28080669538894815,
+          "residentMeanMiB": 188.634375,
+          "residentPeakMiB": 190.8125,
+          "privateMeanMiB": 150.9376953125,
+          "privatePeakMiB": 153.8671875,
+          "renderedFrames": 543,
+          "simulationSteps": 543,
+          "renderedFps": 26.920260077673724,
+          "foregroundSamples": 0
+        }
+      ],
+      "hidden": [
+        {
+          "state": "hidden",
+          "elapsedSeconds": 10.018546799999996,
+          "cpuSeconds": 0.09375,
+          "cpuPercentOneCore": 0.9357644563780452,
+          "cpuPercentMachine": 0.05848527852362782,
+          "residentMeanMiB": 191.801953125,
+          "residentPeakMiB": 191.859375,
+          "privateMeanMiB": 154.08046875,
+          "privatePeakMiB": 154.125,
+          "renderedFrames": 0,
+          "simulationSteps": 0,
+          "renderedFps": 0,
+          "foregroundSamples": 0
+        },
+        {
+          "state": "hidden",
+          "elapsedSeconds": 10.0210461,
+          "cpuSeconds": 0.015625,
+          "cpuPercentOneCore": 0.15592184532511033,
+          "cpuPercentMachine": 0.009745115332819396,
+          "residentMeanMiB": 191.25,
+          "residentPeakMiB": 191.30078125,
+          "privateMeanMiB": 153.8828125,
+          "privatePeakMiB": 153.90625,
+          "renderedFrames": 0,
+          "simulationSteps": 0,
+          "renderedFps": 0,
+          "foregroundSamples": 0
+        }
+      ]
+    },
+    {
+      "cats": 4,
+      "visible": [
+        {
+          "state": "visible",
+          "elapsedSeconds": 20.0990976,
+          "cpuSeconds": 1.203125,
+          "cpuPercentOneCore": 5.985965260450301,
+          "cpuPercentMachine": 0.3741228287781438,
+          "residentMeanMiB": 197.1796875,
+          "residentPeakMiB": 200.2421875,
+          "privateMeanMiB": 174.059765625,
+          "privatePeakMiB": 178.76953125,
+          "renderedFrames": 552,
+          "simulationSteps": 552,
+          "renderedFps": 27.463919574180284,
+          "foregroundSamples": 0
+        },
+        {
+          "state": "visible",
+          "elapsedSeconds": 20.1105476,
+          "cpuSeconds": 0.71875,
+          "cpuPercentOneCore": 3.5739951705740722,
+          "cpuPercentMachine": 0.22337469816087951,
+          "residentMeanMiB": 197.6234375,
+          "residentPeakMiB": 201.28515625,
+          "privateMeanMiB": 174.1123046875,
+          "privatePeakMiB": 179.609375,
+          "renderedFrames": 563,
+          "simulationSteps": 563,
+          "renderedFps": 27.99525956220108,
+          "foregroundSamples": 0
+        }
+      ],
+      "hidden": [
+        {
+          "state": "hidden",
+          "elapsedSeconds": 10.0684759,
+          "cpuSeconds": 0.09375,
+          "cpuPercentOneCore": 0.9311240443054545,
+          "cpuPercentMachine": 0.058195252769090905,
+          "residentMeanMiB": 200.6796875,
+          "residentPeakMiB": 200.71484375,
+          "privateMeanMiB": 177.84765625,
+          "privatePeakMiB": 177.84765625,
+          "renderedFrames": 0,
+          "simulationSteps": 0,
+          "renderedFps": 0,
+          "foregroundSamples": 0
+        },
+        {
+          "state": "hidden",
+          "elapsedSeconds": 10.037185100000002,
+          "cpuSeconds": 0.078125,
+          "cpuPercentOneCore": 0.7783556766328836,
+          "cpuPercentMachine": 0.04864722978955523,
+          "residentMeanMiB": 201.694140625,
+          "residentPeakMiB": 201.73046875,
+          "privateMeanMiB": 178.18828125,
+          "privatePeakMiB": 178.23828125,
+          "renderedFrames": 0,
+          "simulationSteps": 0,
+          "renderedFps": 0,
+          "foregroundSamples": 0
+        }
+      ]
+    },
+    {
+      "cats": 8,
+      "visible": [
+        {
+          "state": "visible",
+          "elapsedSeconds": 20.0676711,
+          "cpuSeconds": 1.296875,
+          "cpuPercentOneCore": 6.462508746219187,
+          "cpuPercentMachine": 0.40390679663869916,
+          "residentMeanMiB": 225.608203125,
+          "residentPeakMiB": 230.4296875,
+          "privateMeanMiB": 215.8125,
+          "privatePeakMiB": 228.19140625,
+          "renderedFrames": 553,
+          "simulationSteps": 553,
+          "renderedFps": 27.556760186287885,
+          "foregroundSamples": 0
+        },
+        {
+          "state": "visible",
+          "elapsedSeconds": 20.280012499999998,
+          "cpuSeconds": 0.796875,
+          "cpuPercentOneCore": 3.929361483381729,
+          "cpuPercentMachine": 0.24558509271135806,
+          "residentMeanMiB": 225.2775390625,
+          "residentPeakMiB": 229.78515625,
+          "privateMeanMiB": 215.56171875,
+          "privatePeakMiB": 227.35546875,
+          "renderedFrames": 559,
+          "simulationSteps": 559,
+          "renderedFps": 27.56408557440485,
+          "foregroundSamples": 0
+        }
+      ],
+      "hidden": [
+        {
+          "state": "hidden",
+          "elapsedSeconds": 10.041947000000004,
+          "cpuSeconds": 0.03125,
+          "cpuPercentOneCore": 0.31119463187766266,
+          "cpuPercentMachine": 0.019449664492353917,
+          "residentMeanMiB": 230.903125,
+          "residentPeakMiB": 230.94921875,
+          "privateMeanMiB": 226.9875,
+          "privatePeakMiB": 227,
+          "renderedFrames": 0,
+          "simulationSteps": 0,
+          "renderedFps": 0,
+          "foregroundSamples": 0
+        },
+        {
+          "state": "hidden",
+          "elapsedSeconds": 10.018389900000003,
+          "cpuSeconds": 0.03125,
+          "cpuPercentOneCore": 0.31192637052387023,
+          "cpuPercentMachine": 0.01949539815774189,
+          "residentMeanMiB": 230.233203125,
+          "residentPeakMiB": 230.28515625,
+          "privateMeanMiB": 226.55390625,
+          "privatePeakMiB": 227.46875,
+          "renderedFrames": 0,
+          "simulationSteps": 0,
+          "renderedFps": 0,
+          "foregroundSamples": 0
+        }
+      ]
+    }
+  ],
+  "gpu": {
+    "cats": 8,
+    "validSamples": 14,
+    "meanBusiestEnginePercent": 0.25888049697523435,
+    "peakBusiestEnginePercent": 0.28421370525468764,
+    "error": null,
+    "warnings": 1
+  }
+}

@@ -1,5 +1,7 @@
 # Parque de gatitos
 
+También hay una [prueba nativa para Windows con C# y WPF](desktop/README.md): gatos sobre el escritorio, modos de uno, cuatro y ocho, controles de pausa y ocultación, y mediciones reproducibles.
+
 Escena animada en pixel art: un parque con arcoíris, flores y mariposas donde muchos gatitos de distintos pelajes y contexturas pasean, se persiguen, juegan, ruedan, se lamen, duermen, se meten en una caja, trepan un gimnasio gatuno y se tiran por el tobogán.
 
 Verla en línea: https://mfbalestra.github.io/parque-de-gatitos/
