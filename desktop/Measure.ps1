@@ -22,8 +22,9 @@ for ($run = 1; $run -le $Repetitions; $run++) {
         $gpuError = $null
         $gpuWarnings = 0
         $elapsed = [Diagnostics.Stopwatch]::StartNew()
+        try {
         while (-not $measurementProcess.HasExited) {
-            if ($elapsed.Elapsed.TotalSeconds -gt 65) { throw "La medición excedió su límite. Revisá la instancia propia PID $($measurementProcess.Id)." }
+            if ($elapsed.Elapsed.TotalSeconds -gt 65) { throw "La medición excedió su límite. Se cerrará solamente la instancia propia PID $($measurementProcess.Id)." }
             if ($gpuError) { $measurementProcess.WaitForExit(1000) | Out-Null; continue }
             try {
                 # Other processes can disappear between GPU samples; retain valid samples for this PID.
@@ -33,6 +34,13 @@ for ($run = 1; $run -le $Repetitions; $run++) {
                 $own = @($counter.CounterSamples | Where-Object { $_.InstanceName -like "pid_$($measurementProcess.Id)_*" -and $_.Status -eq 0 })
                 $gpuSamples.Add([pscustomobject]@{ timestampUtc = $counter.Timestamp.ToUniversalTime().ToString('o'); engines = @($own | Select-Object InstanceName,CookedValue) })
             } catch { $gpuError = $_.Exception.Message }
+        }
+        } finally {
+            # This Process object is the child created above, never an unrelated instance.
+            if (-not $measurementProcess.HasExited) {
+                $measurementProcess.Kill()
+                $measurementProcess.WaitForExit(5000) | Out-Null
+            }
         }
         [pscustomobject]@{ processId=$measurementProcess.Id; error=$gpuError; warnings=$gpuWarnings; samples=$gpuSamples } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $gpuPath -Encoding utf8
         if ($measurementProcess.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $resultPath)) { throw "Falló la medición de $count gatos." }
