@@ -20,18 +20,12 @@ internal sealed class OverlayWindow : Window
     private readonly Forms.NotifyIcon tray;
     private readonly Forms.ToolStripMenuItem pauseItem = new("Pausar");
     private readonly Forms.ToolStripMenuItem hideItem = new("Ocultar");
-    private readonly List<Forms.ToolStripMenuItem> countItems = new();
     private readonly Measurement? measurement;
     private double lastTime;
-    private double nextFrameAt;
+    private readonly FramePacer pacer;
     private bool paused;
     private bool hidden;
-    private Window? panel;
-    private TextBlock? panelStatus;
-    private Button? panelPause, panelHide;
-    private TextBox? companionInput, stayInput;
-    private TextBlock? scheduleStatus, settingsMessage;
-    private readonly List<Button> countButtons = new();
+    private SettingsPanel? panel;
     private readonly ParkCycle cycle;
     private readonly ParkScene parkScene = new();
     private bool expanded;
@@ -39,6 +33,7 @@ internal sealed class OverlayWindow : Window
     public string Scene => cycle.Phase.ToString();
     public int Visits => cycle.Visits;
     public int CatCount { get; private set; }
+    public int TargetFps => pacer.Target;
     public long Frames => surface.Frames;
     public long Steps { get; private set; }
     public int Activations { get; private set; }
@@ -52,20 +47,17 @@ internal sealed class OverlayWindow : Window
         AllowsTransparency = true; Background = Brushes.Transparent;
         ShowInTaskbar = false; ShowActivated = false; Topmost = true;
         Focusable = false; IsHitTestVisible = false;
-        cycle = new ParkCycle(ParkSettings.Load());
+        var saved = ParkSettings.Load();
+        var settings = saved with { Cats = options.Cats ?? saved.Cats, Fps = options.Fps ?? saved.Fps };
+        cycle = new ParkCycle(settings); pacer = new FramePacer(settings.Fps);
         surface = new CatSurface(catalog, cycle, parkScene); Content = surface;
-        Place(); SetCount(options.Cats); paused = options.Paused;
+        Place(); SetCount(settings.Cats); paused = options.Paused;
         tray = new Forms.NotifyIcon { Icon = System.Drawing.SystemIcons.Information, Text = "Gatitos — clic derecho para opciones" };
         var menu = new Forms.ContextMenuStrip();
-        foreach (int count in new[] { 1, 4, 8 })
-        {
-            var item = new Forms.ToolStripMenuItem(count == 1 ? "1 gato" : $"{count} gatos") { Tag = count, Checked = count == CatCount };
-            item.Click += (_, _) => SetCount(count); countItems.Add(item); menu.Items.Add(item);
-        }
+        menu.Items.Add("Controles", null, (_, _) => OpenPanel());
         menu.Items.Add(new Forms.ToolStripSeparator()); menu.Items.Add(pauseItem); menu.Items.Add(hideItem);
         menu.Items.Add("Ir al parque ahora", null, (_, _) => VisitPark());
         menu.Items.Add("Volver al escritorio", null, (_, _) => ReturnToDesktop());
-        menu.Items.Add("Controles", null, (_, _) => OpenPanel());
         menu.Items.Add("Salir", null, (_, _) => Close()); tray.ContextMenuStrip = menu;
         pauseItem.Click += (_, _) => { paused = !paused; UpdateAnimation(); };
         hideItem.Click += (_, _) => SetHidden(!hidden);
@@ -105,10 +97,9 @@ internal sealed class OverlayWindow : Window
     private void SetCount(int count)
     {
         if (!Options.ValidCount(count)) throw new ArgumentOutOfRangeException(nameof(count));
-        if (cycle.Expanded) return;
+        if (cycle.Expanded || count == CatCount) return;
         catalog.Load(count); CatCount = count;
         surface.Cats = Enumerable.Range(0, count).Select(i => new CatMotion(i, count, Width)).ToArray();
-        foreach (var item in countItems) item.Checked = (int)item.Tag! == count;
         surface.InvalidateVisual();
         UpdatePanel();
     }
@@ -126,8 +117,6 @@ internal sealed class OverlayWindow : Window
             if (expanded) parkScene.Load(); else parkScene.Release();
             Place();
         }
-        foreach (var item in countItems) item.Enabled = !expanded;
-        foreach (var button in countButtons) button.IsEnabled = !expanded;
         surface.InvalidateVisual(); UpdatePanel();
     }
 
@@ -141,67 +130,52 @@ internal sealed class OverlayWindow : Window
     private void UpdateAnimation()
     {
         pauseItem.Text = paused ? "Reanudar" : "Pausar"; hideItem.Text = hidden ? "Mostrar" : "Ocultar";
-        CompositionTarget.Rendering -= OnRendering; clock.Restart(); lastTime = 0; nextFrameAt = 0;
+        CompositionTarget.Rendering -= OnRendering; clock.Restart(); lastTime = 0; pacer.Reset();
         if (!paused && !hidden) CompositionTarget.Rendering += OnRendering;
         UpdatePanel();
     }
 
     private void OpenPanel()
     {
-        if (panel != null) { panel.Activate(); return; }
-        panel = new Window { Title = "Controles de gatitos", Width = 420, Height = 710, ResizeMode = ResizeMode.CanMinimize, Topmost = true,
-            WindowStartupLocation = WindowStartupLocation.CenterScreen };
-        var layout = new StackPanel { Margin = new Thickness(22) };
-        panelStatus = new TextBlock { FontSize = 18, Margin = new Thickness(0, 0, 0, 12) }; layout.Children.Add(panelStatus);
-        foreach (int count in new[] { 1, 4, 8 })
-        { var choice = new Button { Content = count == 1 ? "1 gato" : $"{count} gatos", Height = 34, Margin = new Thickness(0, 3, 0, 3), IsEnabled = !expanded }; choice.Click += (_, _) => SetCount(count); layout.Children.Add(choice); countButtons.Add(choice); }
-        panelPause = new Button { Height = 34, Margin = new Thickness(0, 8, 0, 3) };
-        panelPause.Click += (_, _) => { paused = !paused; UpdateAnimation(); }; layout.Children.Add(panelPause);
-        panelHide = new Button { Height = 34, Margin = new Thickness(0, 3, 0, 3) };
-        panelHide.Click += (_, _) => SetHidden(!hidden); layout.Children.Add(panelHide);
-        scheduleStatus = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 8), FontWeight = FontWeights.SemiBold }; layout.Children.Add(scheduleStatus);
-        var visit = new Button { Content = "Ir al parque ahora", Height = 34 }; visit.Click += (_, _) => VisitPark(); layout.Children.Add(visit);
-        var back = new Button { Content = "Volver al escritorio", Height = 34, Margin = new Thickness(0, 4, 0, 8) }; back.Click += (_, _) => ReturnToDesktop(); layout.Children.Add(back);
-        companionInput = new TextBox { Text = cycle.Settings.CompanionMinutes.ToString(), Height = 28 };
-        stayInput = new TextBox { Text = cycle.Settings.StayMinutes.ToString(), Height = 28 };
-        layout.Children.Add(new Label { Content = "_Compañía: minutos entre visitas (1–240)", Target = companionInput }); layout.Children.Add(companionInput);
-        layout.Children.Add(new Label { Content = "_Estadía: minutos en el parque (1–60)", Target = stayInput }); layout.Children.Add(stayInput);
-        var apply = new Button { Content = "Guardar tiempos", Height = 32, Margin = new Thickness(0, 8, 0, 2) }; apply.Click += (_, _) => SaveSettings(); layout.Children.Add(apply);
-        settingsMessage = new TextBlock { TextWrapping = TextWrapping.Wrap, MinHeight = 34 }; layout.Children.Add(settingsMessage);
-        var quit = new Button { Content = "Salir de los gatitos", Height = 34, Margin = new Thickness(0, 3, 0, 8) }; quit.Click += (_, _) => Close(); layout.Children.Add(quit);
-        layout.Children.Add(new TextBlock { Text = "El parque tapa los programas, pero los clics pasan. Pausar u ocultar detiene también el reloj. La cantidad se cambia en el escritorio.", TextWrapping = TextWrapping.Wrap });
-        panel.Content = new ScrollViewer { Content = layout, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-        panel.Closed += (_, _) => { panel = null; panelStatus = null; scheduleStatus = null; countButtons.Clear(); };
+        if (panel != null) { if (panel.WindowState == WindowState.Minimized) panel.WindowState = WindowState.Normal; panel.Activate(); return; }
+        panel = new SettingsPanel(cycle.Settings, SaveSettings,
+            () => { paused = !paused; UpdateAnimation(); }, () => SetHidden(!hidden), VisitPark, ReturnToDesktop, Close);
+        panel.Closed += (_, _) => panel = null;
         UpdatePanel(); panel.Show();
     }
 
-    private void SaveSettings()
+    private string? SaveSettings(ParkSettings settings)
     {
-        if (!int.TryParse(companionInput!.Text.Trim(), out int companion) || !int.TryParse(stayInput!.Text.Trim(), out int stay) || !new ParkSettings(companion, stay).Valid)
-        { settingsMessage!.Text = "Usá minutos enteros: compañía de 1 a 240 y estadía de 1 a 60."; return; }
+        if (!settings.Valid) return "Revisá la cantidad, la fluidez y los rangos de minutos.";
+        if (cycle.Expanded && settings.Cats != CatCount) return "La cantidad se cambia al volver al escritorio. Las preferencias aplicadas siguen iguales.";
         try
         {
-            var settings = new ParkSettings(companion, stay); settings.Save(); cycle.Configure(settings);
-            settingsMessage!.Text = "Tiempos guardados. Se aplican al ciclo actual."; UpdatePanel();
+            // Prepare fallible assets before writing. A failed write changes no applied preference.
+            CatMotion[]? replacement = null;
+            if (settings.Cats != CatCount)
+            {
+                catalog.Load(settings.Cats);
+                replacement = Enumerable.Range(0, settings.Cats).Select(i => new CatMotion(i, settings.Cats, Width)).ToArray();
+            }
+            settings.Save();
+            cycle.Configure(settings);
+            if (replacement != null) { surface.Cats = replacement; CatCount = settings.Cats; surface.InvalidateVisual(); }
+            if (pacer.Target != settings.Fps) pacer.Configure(settings.Fps);
+            UpdatePanel(); return null;
         }
         catch (Exception error) when (error is System.IO.IOException or UnauthorizedAccessException)
-        { settingsMessage!.Text = "No se pudieron guardar los tiempos. Usá una carpeta con permiso de escritura."; }
+        { return "No se pudieron guardar las preferencias. Revisá el permiso de escritura y el espacio en la carpeta de la aplicación y volvé a guardar. Las preferencias aplicadas siguen iguales."; }
     }
 
     private void UpdatePanel()
     {
-        if (panelStatus == null) return;
-        panelStatus.Text = $"{CatCount} gato{(CatCount == 1 ? "" : "s")} · {(hidden ? "ocultos" : paused ? "en pausa" : "en movimiento")}";
-        panelPause!.Content = paused ? "Reanudar" : "Pausar";
-        panelHide!.Content = hidden ? "Mostrar" : "Ocultar";
-        if (scheduleStatus != null) scheduleStatus.Text = cycle.Status;
+        panel?.Refresh(cycle.Settings, cycle.Expanded, paused, hidden, cycle.Status);
     }
 
     private void OnRendering(object? sender, EventArgs args)
     {
+        if (args is not RenderingEventArgs render || !pacer.ShouldRender(render.RenderingTime.TotalSeconds)) return;
         double now = clock.Elapsed.TotalSeconds;
-        if (now < nextFrameAt) return;
-        nextFrameAt = (Math.Floor(now * 30) + 1) / 30;
         double elapsed = now - lastTime; lastTime = now;
         // A long gap means suspension; do not turn it into a surprise visit on resume.
         if (elapsed > 2) elapsed = 0;

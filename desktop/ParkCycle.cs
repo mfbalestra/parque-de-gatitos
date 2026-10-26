@@ -5,22 +5,38 @@ using System.Text.Json;
 
 namespace Gatitos;
 
-internal sealed record ParkSettings(int CompanionMinutes = 30, int StayMinutes = 5)
+internal sealed record ParkSettings(int CompanionMinutes = 30, int StayMinutes = 5, int Cats = 4, int Fps = 30)
 {
-    public bool Valid => CompanionMinutes is >= 1 and <= 240 && StayMinutes is >= 1 and <= 60;
+    public static bool ValidCompanion(int value) => value is >= 1 and <= 240;
+    public static bool ValidStay(int value) => value is >= 1 and <= 60;
+    public static bool ValidCount(int value) => value is 1 or 4 or 8;
+    public static bool ValidFps(int value) => value is 30 or 60;
+    public bool Valid => ValidCompanion(CompanionMinutes) && ValidStay(StayMinutes) && ValidCount(Cats) && ValidFps(Fps);
     public static string PathName => Path.Combine(AppContext.BaseDirectory, "gatitos-settings.json");
-    public static ParkSettings Load()
+    public static ParkSettings Load(string? path = null)
     {
-        if (!File.Exists(PathName)) return new();
-        var value = JsonSerializer.Deserialize<ParkSettings>(File.ReadAllText(PathName));
-        return value?.Valid == true ? value : throw new InvalidDataException("Los tiempos guardados no son válidos.");
+        path ??= PathName;
+        if (!File.Exists(path)) return new();
+        var value = JsonSerializer.Deserialize<ParkSettings>(File.ReadAllText(path));
+        return value?.Valid == true ? value : throw new InvalidDataException("Las preferencias guardadas no son válidas.");
     }
-    public void Save()
+    public void Save(string? path = null)
     {
-        if (!Valid) throw new ArgumentOutOfRangeException(nameof(CompanionMinutes));
-        string temporary = PathName + ".tmp";
-        File.WriteAllText(temporary, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
-        File.Move(temporary, PathName, true);
+        if (!Valid) throw new ArgumentOutOfRangeException(nameof(ParkSettings));
+        path ??= PathName;
+        string temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            File.WriteAllText(temporary, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
+            File.Move(temporary, path, true);
+        }
+        finally
+        {
+            // Cleanup must not hide the original write failure or turn a successful commit into a failure.
+            try { if (File.Exists(temporary)) File.Delete(temporary); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
     }
 }
 

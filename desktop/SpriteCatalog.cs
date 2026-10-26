@@ -15,7 +15,6 @@ internal sealed class SpriteCatalog
     private readonly Dictionary<(int, string), Sprite> sprites = new();
     private readonly Dictionary<string, BitmapSource> images = new();
     private readonly JsonDocument document;
-    private static readonly double[] Sizes = { 1, .96, 1.04, .98, 1.05, .95, 1.02, 1 };
     private static readonly string[] Names = { "standing", "walkA", "walkB", "sit", "sleep", "groomA", "groomB", "crouch", "jumpRise", "jumpTuck", "jumpFall", "landing" };
 
     public SpriteCatalog()
@@ -29,8 +28,15 @@ internal sealed class SpriteCatalog
     public void Load(int count)
     {
         for (int coat = 0; coat < count; coat++)
+        {
             foreach (string name in Names)
                 if (!sprites.ContainsKey((coat, name))) sprites.Add((coat, name), Create(coat, name));
+            if (!sprites.ContainsKey((coat, "walk0")))
+            {
+                var walk = WalkingArt.Load(coat);
+                for (int frame = 0; frame < walk.Length; frame++) sprites.Add((coat, "walk" + frame), walk[frame]);
+            }
+        }
     }
 
     public Sprite Get(int coat, string name) => sprites[(coat, name)];
@@ -66,7 +72,7 @@ internal sealed class SpriteCatalog
         drawing.Children.Add(new ImageDrawing(crop, new Rect(0, 0, w, h))); drawing.Freeze();
         double maxW = name is "jumpRise" or "jumpFall" ? 24 : 23;
         double maxH = name switch { "sleep" => 11, "crouch" or "landing" => 13, "jumpTuck" => 14, "sit" or "groomA" or "groomB" => 18, _ => 17 };
-        double scale = Math.Min(maxW / w, maxH / h) * Sizes[coat] * 4;
+        double scale = Math.Min(maxW / w, maxH / h) * WalkGait.Size(coat) * 4;
         int facing = rect.TryGetProperty("facing", out var f) ? f.GetInt32() : name is "sit" or "sleep" or "groomA" or "groomB" ? -1 : 1;
         return new(drawing, w * scale, h * scale, w, h,
             rect.TryGetProperty("anchorX", out var ax) ? ax.GetDouble() : .5,

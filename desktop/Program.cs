@@ -35,29 +35,30 @@ internal static class Program
     }
 }
 
-internal sealed record Options(int Cats, bool Paused, bool Probe, bool SelfTest, bool Panel, string? Output, bool ParkNow)
+internal sealed record Options(int? Cats, bool Paused, bool Probe, bool SelfTest, bool Panel, string? Output, bool ParkNow, int? Fps = null)
 {
-    public static bool ValidCount(int count) => count is 1 or 4 or 8;
+    public static bool ValidCount(int count) => ParkSettings.ValidCount(count);
 
     public static Options Parse(string[] args)
     {
-        int cats = 4; bool paused = false, probe = false, selfTest = false, panel = false, parkNow = false; string? output = null;
+        int? cats = null, fps = null; bool paused = false, probe = false, selfTest = false, panel = false, parkNow = false; string? output = null;
         for (int i = 0; i < args.Length; i++)
         {
             switch (args[i])
             {
                 case "--cats" when i + 1 < args.Length && int.TryParse(args[++i], out int count) && ValidCount(count): cats = count; break;
+                case "--fps" when i + 1 < args.Length && int.TryParse(args[++i], out int rate) && ParkSettings.ValidFps(rate): fps = rate; break;
                 case "--paused": paused = true; break;
                 case "--panel": panel = true; break;
                 case "--park-now": parkNow = true; break;
                 case "--probe": probe = true; break;
                 case "--self-test": selfTest = true; break;
                 case "--output" when i + 1 < args.Length: output = Path.GetFullPath(args[++i]); break;
-                default: throw new ArgumentException("Opciones: --cats 1|4|8, --paused, --panel, --park-now, --output archivo.json, --probe, --self-test.");
+                default: throw new ArgumentException("Opciones: --cats 1|4|8, --fps 30|60, --paused, --panel, --park-now, --output archivo.json, --probe, --self-test.");
             }
         }
         if ((probe || selfTest) && output == null) throw new ArgumentException("La prueba necesita --output archivo.json.");
         if (probe && selfTest || paused && output != null && !probe) throw new ArgumentException("Combinación de opciones incompatible.");
-        return new(cats, paused, probe, selfTest, panel, output, parkNow);
+        return new(cats, paused, probe, selfTest, panel, output, parkNow, fps);
     }
 }

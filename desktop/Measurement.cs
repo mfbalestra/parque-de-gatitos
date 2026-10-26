@@ -75,7 +75,7 @@ internal sealed class Measurement : IDisposable
                 {
                     End("hidden");
                     var dpi = VisualTreeHelper.GetDpi(window);
-                    var result = new { measuredAtUtc = DateTime.UtcNow, processId = process.Id, cats = window.CatCount, targetFps = 30,
+                    var result = new { measuredAtUtc = DateTime.UtcNow, processId = process.Id, cats = window.CatCount, targetFps = window.TargetFps,
                         logicalProcessors = Environment.ProcessorCount, runtime = Environment.Version.ToString(),
                         os = Environment.OSVersion.VersionString, renderTier = RenderCapability.Tier >> 16,
                         widthDip = window.Width, heightDip = window.Height, dpiScale = dpi.DpiScaleX,

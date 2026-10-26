@@ -3,5 +3,7 @@
   <ItemGroup>
     <Compile Include="../../desktop/CatMotion.cs" Link="CatMotion.cs" />
     <Compile Include="../../desktop/ParkCycle.cs" Link="ParkCycle.cs" />
+    <Compile Include="../../desktop/FramePacer.cs" Link="FramePacer.cs" />
+    <Compile Include="../../desktop/WalkGait.cs" Link="WalkGait.cs" />
   </ItemGroup>
 </Project>

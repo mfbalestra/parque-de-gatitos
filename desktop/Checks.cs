@@ -31,6 +31,15 @@ internal static class Checks
             Check(Math.Abs(CatMotion.JumpHeight(t) - CatMotion.JumpHeight(CatMotion.AirTime - t)) < 1e-8, "Arco asimétrico.");
         }
         for (int n = -100; n <= 100; n++) Check(Options.ValidCount(n) == (n == 1 || n == 4 || n == 8), "Cantidad inválida aceptada.");
+        var defaults = Options.Parse(Array.Empty<string>());
+        Check(defaults.Cats == null && defaults.Fps == null, "El inicio debe usar las preferencias guardadas.");
+        foreach (int fps in new[] { 30, 60 }) Check(Options.Parse(new[] { "--fps", fps.ToString() }).Fps == fps, "Override de FPS perdido.");
+        foreach (string fps in new[] { "0", "45", "120", "x" })
+        {
+            bool rejected = false;
+            try { Options.Parse(new[] { "--fps", fps }); } catch (ArgumentException) { rejected = true; }
+            Check(rejected, "FPS inválidos aceptados.");
+        }
         for (int companion = -2; companion <= 242; companion++)
         for (int stay = -2; stay <= 62; stay++)
             Check(new ParkSettings(companion, stay).Valid == (companion >= 1 && companion <= 240 && stay >= 1 && stay <= 60), "Rango de tiempos incorrecto.");
@@ -73,7 +82,15 @@ internal static class Checks
             Check(cycle.Phase == ParkPhase.Visiting, "La visita solicitada durante la vuelta se perdió.");
         }
         var art = new SpriteCatalog(); art.Load(8);
-        for (int coat = 0; coat < 8; coat++) Check(art.Get(coat, "standing").Width > 0, "Arte faltante.");
+        for (int coat = 0; coat < 8; coat++)
+        {
+            Check(art.Get(coat, "standing").Width > 0, "Arte faltante.");
+            for (int frame = 0; frame < 8; frame++)
+            {
+                var sprite = art.Get(coat, "walk" + frame);
+                Check(sprite.Drawing.IsFrozen && sprite.Width > 0 && sprite.AnchorY == .9, "Cuadro de caminata faltante o sin apoyo registrado.");
+            }
+        }
         File.WriteAllText(output!, JsonSerializer.Serialize(new { passed = true, assertions, coats = 8 }));
     }
 }

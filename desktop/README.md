@@ -4,7 +4,9 @@ Una aplicación C# con WPF muestra uno, cuatro u ocho gatos sobre el borde infer
 
 ## Visitas al parque
 
-La configuración inicial es **30 minutos de compañía y 5 minutos de estadía**. En **Controles**, cambiá «Compañía» (1 a 240 minutos) y «Estadía» (1 a 60), y elegí **Guardar tiempos**. Se aceptan minutos enteros. Los cambios se aplican al ciclo actual: si el tiempo nuevo ya transcurrió, la transición comienza al reanudar. Los valores se guardan en `gatitos-settings.json`, junto al ejecutable. La carpeta debe permitir escritura; si no, el panel avisa y conserva los tiempos anteriores. Un archivo de configuración externo inválido impide el inicio con un mensaje; puede corregirse o retirarse para volver a los valores iniciales.
+La configuración inicial es **cuatro gatos, 30 FPS, 30 minutos de compañía y 5 minutos de estadía**. En **Controles**, elegí la cantidad, la fluidez, «Compañía» (1 a 240 minutos) y «Estadía» (1 a 60), y presioná **Guardar preferencias**. Se aceptan minutos enteros. Los cuatro valores se guardan juntos en `gatitos-settings.json`, junto al ejecutable. La carpeta debe permitir escritura; ante un error, el panel conserva todas las preferencias anteriores. Los archivos antiguos que sólo contienen tiempos conservan esos tiempos y reciben cuatro gatos y 30 FPS.
+
+Los tiempos nuevos se aplican al ciclo actual y conservan lo ya transcurrido: si el intervalo nuevo ya venció, la transición comienza al reanudar. Guardar una cantidad sin cambios conserva los gatos y sus posiciones. Cambiar la cantidad recrea el grupo y sólo se permite en el escritorio. Un archivo externo inválido impide el inicio con un mensaje; puede corregirse o retirarse para volver a los valores iniciales.
 
 El parque aparece gradualmente durante dos segundos y cubre el área útil del monitor principal, dejando la barra de tareas disponible. Los gatos que estaban saltando terminan su salto; después caminan hacia el césped. La estadía empieza cuando todos llegaron. Algunos recorren los escalones y descansan en la estructura; los demás pasean, duermen y se acicalan. Las mariposas se mueven de forma independiente.
 
@@ -16,11 +18,13 @@ Para ver la escena directamente al iniciar: `Gatitos.Windows.exe --cats 8 --pane
 
 ## Usarla
 
-Abrí `Gatitos.Windows.exe`. Aparecen cuatro gatos y un icono de información en la bandeja de Windows, junto al reloj; puede estar entre los iconos ocultos. El clic derecho ofrece **1 gato**, **4 gatos**, **8 gatos**, **Pausar/Reanudar**, **Ocultar/Mostrar**, **Controles** y **Salir**. El doble clic en el icono oculta o muestra los gatos.
+Abrí `Gatitos.Windows.exe`. Aparecen los gatos según tus preferencias guardadas y un icono de información en la bandeja de Windows, junto al reloj; puede estar entre los iconos ocultos. El clic derecho ofrece **Controles**, **Pausar/Reanudar**, **Ocultar/Mostrar**, **Ir al parque ahora**, **Volver al escritorio** y **Salir**. El doble clic en el icono oculta o muestra los gatos.
 
 Los clics atraviesan incluso el cuerpo de cada gato y llegan al programa de abajo. La ventana de los gatos no toma el foco ni aparece en Alt+Tab. Podés seguir escribiendo y cambiando de aplicación. Los gatos sí pueden tapar visualmente un fragmento de contenido en el borde inferior: ocultalos cuando necesites verlo.
 
-El panel **Controles** ofrece las mismas acciones con botones y navegación de teclado. Se abre deliberadamente y funciona como una ventana normal. Cerrar ese panel deja los gatos activos; **Salir de los gatitos** cierra toda la aplicación. La opción `--panel` abre directamente ese panel al iniciar, útil para probarlo o manejarlo con teclado.
+El panel **Controles** muestra la actividad, el tiempo restante, acciones inmediatas y preferencias agrupadas. Los cambios pendientes se indican por texto. Guardar y salir permanecen al pie mientras el contenido puede desplazarse; Tab recorre controles y Alt+G guarda. Se abre deliberadamente y funciona como una ventana normal. Cerrar ese panel deja los gatos activos; **Salir de los gatitos** cierra toda la aplicación. La opción `--panel` abre directamente ese panel al iniciar.
+
+Elegir **60 FPS** aumenta la frecuencia de dibujo según la pantalla y el equipo. La velocidad de caminata, los saltos y el reloj conservan su duración. Las patas recorren ocho cuadros por zancada: la fase depende de la distancia física, tanto en el escritorio como en el parque. Pausar detiene también esa fase. `--fps 60` y `--cats 8` sustituyen las preferencias para esa ejecución; sólo se guardan si presionás Guardar preferencias.
 
 Pausar mantiene los dibujos quietos; ocultar quita la franja. Ambos desconectan el ciclo de animación del dibujo de WPF. Mostrar conserva la pausa si estaba activada. No hay sonido, inicio automático, conexión a Internet ni captura global de teclado o ratón. Para evitar superposiciones accidentales se permite una sola instancia de los gatos.
 
@@ -48,7 +52,7 @@ La comprobación interna recorre límites, saltos, direcciones, cantidades admit
 
 La CPU se expresa como porcentaje de un núcleo lógico y del total de núcleos disponibles. La memoria se expresa en MiB (1 048 576 bytes). La memoria privada es la memoria comprometida por el proceso; la residente incluye páginas compartidas y no se suma a la privada. Ocultar conserva las imágenes en memoria para poder volver a mostrarlas. El pequeño temporizador de medición sigue activo durante la muestra oculta; el ciclo de animación se detiene.
 
-El script intenta recoger los motores de GPU atribuidos al proceso. Los contadores ajenos que desaparecen se registran como advertencias; las muestras propias válidas se conservan. Si Windows no devuelve datos, se registra la causa sin inventar consumo cero. Para repetir solamente ocho gatos, agregá `-Counts 8`; usá otra carpeta de resultados.
+El script intenta recoger los motores de GPU atribuidos al proceso. Los contadores ajenos que desaparecen se registran como advertencias; las muestras propias válidas se conservan. Si Windows no devuelve datos, se registra la causa sin inventar consumo cero. Para repetir solamente ocho gatos a 60 FPS, agregá `-Counts 8 -FrameRates 60`; usá otra carpeta de resultados. Por defecto recorre ambas frecuencias. Agregá `-Park` para medir el parque. Un límite de 65 segundos por caso cierra únicamente el proceso de prueba creado por el script si no termina.
 
 Para comprobar la entrada sin tocar documentos propios:
 
@@ -72,4 +76,4 @@ La medición con `--park-now --output archivo.json` espera a que todos hayan lle
 
 El ciclo y sus reglas viven en `ParkCycle.cs`; `ParkScene.cs` dibuja el fondo y las mariposas. El fondo incluye las mantitas y la estructura originales: `node desktop/build-scenery.cjs <node_modules global>` exporta `assets/parque.png` y `park-details.js` a una sola imagen de 1536 × 864. Playwright sólo se usa para esa exportación de desarrollo. El programa entregado usa WPF y no incluye un navegador. Al salir del parque se suelta la referencia a su imagen; la devolución efectiva de memoria depende del runtime.
 
-La corrección de caminata con ocho cuadros por ciclo, el selector de 30/60 FPS y la optimización general de las láminas siguen siendo propuestas pendientes. Esta integración mantiene las poses existentes y el objetivo de 30 FPS; sincroniza los pasos del traslado con la distancia, pero no agrega los dibujos que faltan.
+La caminata usa ocho dibujos compuestos una vez por pelaje, con piezas transparentes originales descritas en [WALK-ART.md](WALK-ART.md). Las patas lejanas quedan detrás del cuerpo; las cercanas se superponen y se funden con hombros y caderas para evitar el efecto de piezas desconectadas. Las otras poses conservan los recortes anteriores. La optimización general de memoria sigue fuera de este cambio. La verificación de esta versión se registra en [VERIFICACION-CAMINATA.md](VERIFICACION-CAMINATA.md).

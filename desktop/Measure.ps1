@@ -2,6 +2,7 @@ param(
     [Parameter(Mandatory=$true)][string]$OutputDirectory,
     [int]$Repetitions = 2,
     [ValidateSet(1,4,8)][int[]]$Counts = @(1,4,8),
+    [ValidateSet(30,60)][int[]]$FrameRates = @(30,60),
     [switch]$Park
 )
 $ErrorActionPreference = 'Stop'
@@ -12,19 +13,21 @@ $resultDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 New-Item -ItemType Directory -Path $resultDirectory -Force | Out-Null
 for ($run = 1; $run -le $Repetitions; $run++) {
     foreach ($count in $Counts) {
-        $resultPath = Join-Path $resultDirectory "cats-$count-run-$run.json"
-        $gpuPath = Join-Path $resultDirectory "gpu-$count-run-$run.json"
+      foreach ($frameRate in $FrameRates) {
+        $sceneMode = if ($Park) { 'park' } else { 'desktop' }
+        $resultPath = Join-Path $resultDirectory "$sceneMode-cats-$count-fps-$frameRate-run-$run.json"
+        $gpuPath = Join-Path $resultDirectory "$sceneMode-gpu-$count-fps-$frameRate-run-$run.json"
         if ((Test-Path -LiteralPath $resultPath) -or (Test-Path -LiteralPath $gpuPath)) { throw 'Ya hay resultados para esta cantidad y repetición. Usá otra carpeta.' }
-        $arguments = @('--cats', [string]$count, '--output', ('"' + $resultPath + '"'))
+        $arguments = @('--cats', [string]$count, '--fps', [string]$frameRate, '--output', ('"' + $resultPath + '"'))
         if ($Park) { $arguments += '--park-now' }
-        $measurementProcess = Start-Process -FilePath $nativeExe -ArgumentList $arguments -PassThru
+        $measurementProcess = Start-Process -FilePath $nativeExe -ArgumentList $arguments -PassThru -WindowStyle Hidden
         $gpuSamples = [Collections.Generic.List[object]]::new()
         $gpuError = $null
         $gpuWarnings = 0
         $elapsed = [Diagnostics.Stopwatch]::StartNew()
         try {
         while (-not $measurementProcess.HasExited) {
-            if ($elapsed.Elapsed.TotalSeconds -gt 65) { throw "La medición excedió su límite. Se cerrará solamente la instancia propia PID $($measurementProcess.Id)." }
+            if ($elapsed.Elapsed.TotalSeconds -gt 65) { throw "La medición excedió su límite; se cerrará solamente su instancia PID $($measurementProcess.Id)." }
             if ($gpuError) { $measurementProcess.WaitForExit(1000) | Out-Null; continue }
             try {
                 # Other processes can disappear between GPU samples; retain valid samples for this PID.
@@ -44,6 +47,7 @@ for ($run = 1; $run -le $Repetitions; $run++) {
         }
         [pscustomobject]@{ processId=$measurementProcess.Id; error=$gpuError; warnings=$gpuWarnings; samples=$gpuSamples } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $gpuPath -Encoding utf8
         if ($measurementProcess.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $resultPath)) { throw "Falló la medición de $count gatos." }
-        Write-Output "Completado: $count gatos, repetición $run."
+        Write-Output "Completado: $count gatos, $frameRate FPS, $sceneMode, repetición $run."
+      }
     }
 }

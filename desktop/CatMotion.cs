@@ -13,6 +13,12 @@ internal sealed class CatMotion
     private double time;
     public double Depth { get; private set; }
     private double stride, hopTime, hopDuration, hopX, hopDepth, hopTargetX, hopTargetDepth;
+    public double WalkDistance => stride;
+    private void Walk(double distance)
+    {
+        stride = (stride + distance) % WalkGait.StrideLength(Coat);
+        Pose = "walk" + WalkGait.Frame(stride, Coat);
+    }
     private const double Speed = 32, Gravity = 620, Impulse = 245;
     public const double AirTime = 2 * Impulse / Gravity;
 
@@ -64,26 +70,50 @@ internal sealed class CatMotion
         double travel = Math.Min(distance, 90 * dt);
         if (travel >= distance) { X = x; Depth = depth; }
         else { X += dx / distance * travel; Depth += dy / distance * travel; }
-        stride += travel;
-        Pose = (int)(stride / 12) % 2 == 0 ? "walkA" : "walkB";
+        Walk(travel);
         return travel >= distance;
     }
 
     public void Advance(double dt, double width)
     {
-        time += dt;
-        double phase = time % 20;
+        if (!double.IsFinite(dt) || dt < 0 || dt > 2) throw new ArgumentOutOfRangeException(nameof(dt));
+        // Split at behavior boundaries, so a frame that straddles takeoff or
+        // landing accounts for exactly the moving portion at either render rate.
+        double remaining = dt;
+        while (remaining > 1e-12)
+        {
+            double phaseAtStart = Math.Round(time % 20, 10);
+            if (phaseAtStart >= 20) { time = Math.Round(time / 20) * 20; phaseAtStart = 0; }
+            double boundary = phaseAtStart < 7 ? 7 : phaseAtStart < 7.22 ? 7.22 : phaseAtStart < 7.22 + AirTime ? 7.22 + AirTime : 20;
+            double slice = Math.Min(remaining, boundary - phaseAtStart);
+            double speed = phaseAtStart < 7 ? Speed : phaseAtStart >= 7.22 && phaseAtStart < 7.22 + AirTime ? Speed * 2 : 0;
+            double travel = speed * slice;
+            X += Direction * travel;
+            double right = Math.Max(70, width - 70);
+            if (right == 70) X = 70;
+            else
+            {
+                while (X > right || X < 70)
+                {
+                    if (X > right) { X = right - (X - right); Direction = -1; }
+                    if (X < 70) { X = 70 + (70 - X); Direction = 1; }
+                }
+                if (phaseAtStart < 7) Walk(travel);
+            }
+            time += slice; remaining -= slice;
+        }
+        double phase = Math.Round(time % 20, 10);
+        if (phase >= 20) phase = 0;
         Height = 0; Squash = 1;
-        double speed = 0;
         if (phase < 7)
         {
-            Pose = ((int)(time * 5) % 2 == 0) ? "walkA" : "walkB"; speed = Speed;
+            Walk(0);
         }
         else if (phase < 7.22) { Pose = "crouch"; Squash = 1 - .10 * Math.Sin((phase - 7) / .22 * Math.PI); }
         else if (phase < 7.22 + AirTime)
         {
             double flight = phase - 7.22;
-            Height = JumpHeight(flight); speed = Speed * 2;
+            Height = JumpHeight(flight);
             Pose = flight < AirTime * .3 ? "jumpRise" : flight < AirTime * .65 ? "jumpTuck" : "jumpFall";
         }
         else if (phase < 7.22 + AirTime + .24)
@@ -91,9 +121,5 @@ internal sealed class CatMotion
         else if (phase < 12) Pose = "sit";
         else if (phase < 15) Pose = (int)(time * 3) % 2 == 0 ? "groomA" : "groomB";
         else Pose = "sleep";
-        X += Direction * speed * dt;
-        double right = Math.Max(70, width - 70);
-        if (X >= right) { X = right; Direction = -1; }
-        if (X <= 70) { X = 70; Direction = 1; }
     }
 }
