@@ -20,12 +20,16 @@ internal static class WalkingArt
         int width = bitmap.PixelWidth, height = bitmap.PixelHeight;
         var pixels = new byte[width * height * 4]; bitmap.CopyPixels(pixels, width * 4, 0);
         var poses = new BitmapSource[WalkGait.FrameCount];
-        int maxWidth = 0, maxHeight = 0;
+        var cropX0 = new int[poses.Length];
+        var anchors = new double[poses.Length];
+        int maxHeight = 0;
+        double maxLeftExtent = 0, maxRightExtent = 0;
         for (int frame = 0; frame < poses.Length; frame++)
         {
             int col = frame % 4, row = frame / 4;
             int left = col * width / 4, right = (col + 1) * width / 4;
             int top = row * height / 2, bottom = (row + 1) * height / 2;
+            double anchor = (right - left) * (800.0 / 1536.0);
             int x0 = right, y0 = bottom, x1 = left, y1 = top;
             for (int y = top; y < bottom; y++)
             for (int x = left; x < right; x++)
@@ -36,16 +40,20 @@ internal static class WalkingArt
             x1 = Math.Min(right - 1, x1 + 1); y1 = Math.Min(bottom - 1, y1 + 1);
             var crop = new CroppedBitmap(bitmap, new Int32Rect(x0, y0, x1 - x0 + 1, y1 - y0 + 1));
             crop.Freeze(); poses[frame] = crop;
-            maxWidth = Math.Max(maxWidth, crop.PixelWidth); maxHeight = Math.Max(maxHeight, crop.PixelHeight);
+            cropX0[frame] = x0 - left;
+            anchors[frame] = anchor;
+            maxHeight = Math.Max(maxHeight, crop.PixelHeight);
+            maxLeftExtent = Math.Max(maxLeftExtent, anchor - cropX0[frame]);
+            maxRightExtent = Math.Max(maxRightExtent, cropX0[frame] + crop.PixelWidth - anchor);
         }
         // One scale per coat preserves the proportions drawn across the full cycle.
-        double fit = Math.Min(100.0 / maxWidth, 68.0 / maxHeight);
+        double fit = Math.Min(68.0 / maxHeight, Math.Min(50.0 / maxLeftExtent, 50.0 / maxRightExtent));
         var result = new SpriteCatalog.Sprite[poses.Length];
         for (int frame = 0; frame < result.Length; frame++)
         {
             var pose = poses[frame];
             double w = pose.PixelWidth * fit, h = pose.PixelHeight * fit;
-            var drawing = new ImageDrawing(pose, new Rect(56 - w / 2, 72 - h, w, h));
+            var drawing = new ImageDrawing(pose, new Rect(56 + (cropX0[frame] - anchors[frame]) * fit, 72 - h, w, h));
             drawing.Freeze();
             double scale = WalkGait.Size(coat);
             result[frame] = new(drawing, 112 * scale, 80 * scale, 112, 80, .5, .9, 1);

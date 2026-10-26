@@ -94,6 +94,12 @@ internal static class Checks
                 var image = (System.Windows.Media.Imaging.BitmapSource)drawing.ImageSource;
                 Check(Math.Abs(drawing.Rect.Bottom - 72) < 1e-8 && drawing.Rect.Left >= 6 && drawing.Rect.Right <= 106, "Pose fuera del apoyo o del margen horizontal.");
                 Check(Math.Abs(drawing.Rect.Width / image.PixelWidth - drawing.Rect.Height / image.PixelHeight) < 1e-8, "La pose completa no debe deformarse.");
+                var crop = (System.Windows.Media.Imaging.CroppedBitmap)image;
+                int cellLeft = frame % 4 * crop.Source.PixelWidth / 4;
+                int cellRight = (frame % 4 + 1) * crop.Source.PixelWidth / 4;
+                double anchor = cellLeft + (cellRight - cellLeft) * (800.0 / 1536.0);
+                double registeredX = drawing.Rect.Left + (anchor - crop.SourceRect.X) * drawing.Rect.Width / image.PixelWidth;
+                Check(Math.Abs(registeredX - 56) < 1e-8, "Los cuadros deben conservar el mismo anclaje horizontal del atlas.");
             }
         }
         File.WriteAllText(output!, JsonSerializer.Serialize(new { passed = true, assertions, coats = 8 }));

@@ -1,5 +1,7 @@
 # Caminata con imágenes completas — 25/10/2026
 
+Registro histórico de c9cdf85. El propietario rechazó posteriormente la lógica de estas poses. Sus pruebas de carga y controles no acreditaron la calidad del ciclo. La versión basada en el naranja V2 aprobado se documenta en VERIFICACION-CICLO.md; las cifras de este documento no se atribuyen al arte nuevo.
+
 El propietario rechazó el torso fijo con patas articuladas de 88908cf y eligió las imágenes completas. Se reemplazaron las ocho láminas por sus fuentes originales de ocho poses, incluida la naranja adjunta. Cada cuadro es un único ImageDrawing congelado: sólo se recorta el margen transparente y se registra la pose al suelo, con escala uniforme por pelaje. El código de movimiento, los controles, la persistencia, el ciclo del parque y los filtros de entrada permanecen iguales.
 
 ## Pruebas y revisión
