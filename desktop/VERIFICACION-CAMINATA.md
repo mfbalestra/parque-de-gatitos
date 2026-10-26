@@ -1,4 +1,6 @@
-# Caminata, fluidez y preferencias — 25/10/2026
+# Caminata, fluidez y preferencias — evidencia histórica de 88908cf
+
+La caminata por piezas documentada aquí fue rechazada por el propietario y reemplazada por imágenes completas. Consultar [VERIFICACION-IMAGENES.md](VERIFICACION-IMAGENES.md) para el dibujo y consumo actuales. Las comprobaciones de controles y entrada se conservan como evidencia de componentes que esta corrección no modifica.
 
 Alcance aprobado: ocho cuadros en los ocho pelajes, objetivo guardable de 30/60 FPS y controles nativos agrupados. Corrección posterior del propietario: las patas se veían desconectadas. Las patas cercanas ahora se superponen al torso con una transición de opacidad en hombros y caderas; las lejanas quedan detrás. Se inspeccionaron los 64 cuadros exportados del mismo dibujante WPF. La aceptación visual del propietario sigue pendiente.
 

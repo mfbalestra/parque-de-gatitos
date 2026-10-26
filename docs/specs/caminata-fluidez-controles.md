@@ -30,9 +30,9 @@ Improve the existing native WPF companion on the current feature branch. Replace
 - Proposed: keep 30 FPS as the initial target because resource use matters to the owner; 60 FPS is an explicit saved preference. Increasing render rate must not accelerate simulation.
 - Proposed: preserve Windows-native light controls, typography and window behavior; sober operational composition, grouped settings and restrained accents. No new visual identity or UI framework. The HTML composition is a schematic, not a running WPF implementation.
 - Proposed: a single save commits all settings atomically; immediate Pause/Hide/Visit/Return actions stay separate. Existing duration ranges and application to the current cycle remain unchanged. CLI cat-count overrides are session-only until the owner explicitly saves preferences.
-- User moments: scope and sober direction approved 2026-10-25; native early look delivered and the owner's leg-connection correction applied. Final visual acceptance pending. The walkthrough distinguishes generated artwork, measured behavior and owner acceptance. The four proposed decisions above are approved by that answer.
+- User moments: scope and sober direction approved 2026-10-25; native early look delivered and the owner's leg-connection correction applied. The owner rejected the articulated result and selected complete-pose images; final visual acceptance pending. The walkthrough distinguishes generated artwork, measured behavior and owner acceptance. The four proposed decisions above are approved by that answer.
 - Keep reviewable local work on mejora-gatitos-ilustrados, based on 019b0efa7d1ef2371bee569545a9299a1c5464e4. No push or deployment in this request.
-- Implementation: eight frozen native drawings per coat are composed from generated body/limb pieces. Complete generated pose sheets were rejected for repeated leg positions. The owner's subsequent correction about disconnected legs is addressed by layering the near shoulders/hips over the torso and blending their upper outlines.
+- Owner correction, 2026-10-25: use the complete-pose images attached in chat. Replace the fixed torso and separately articulated limbs with eight whole-image poses for every coat. The orange sheet is exactly the selected source; the other seven come from its existing generated series. No new artwork or limb deformation. Uniform scale per coat and ground registration preserve proportions.
 - The early native controls exposed excessive scrolling; Save, feedback and Exit now stay in a fixed footer. The owner chose sober native controls, so no framework or new visual identity was introduced.
 - visual acceptance: pending the user. The implemented comparison and runnable package are available; approval of scope is not acceptance of the resulting gait.
 
@@ -50,8 +50,8 @@ General memory architecture optimization, replacing WPF, new dependencies, start
 
 | Criterion | Status | Evidence |
 |---|---|---|
-| Eight-frame loop and stable silhouette | met | 64 native drawings inspected; new walk observed in the park. Owner aesthetic acceptance pending separately. |
-| Distance-driven support and rest | met | WalkContracts tests periodic stride, stationary supporting paw model and frozen phase at rest. |
+| Eight-frame loop and stable silhouette | met | 64 complete production drawings inspected in the export and comparison. Final package starts with eight cats in the park. Passive overlay not exposed to capture; owner visual acceptance pending, see desktop/VERIFICACION-IMAGENES.md. |
+| Distance-driven support and rest | met | WalkContracts tests periodic stride and frozen phase at rest. The retired procedural paw model is replaced by full-image, aspect-ratio and ground-registration checks; visual support comes from the selected artwork. |
 | 30/60 equivalence and target | met | Same positions/phases at both rates; pacer tested against six refresh rates. Actual drawings below target 60 are disclosed. |
 | Atomic saved preferences without timer reset | met | Settings contracts, UI save, unchanged countdown continuity and restart with 8/60. |
 | Older settings compatibility | met | Old two-field JSON retains durations and receives 4/30 defaults. |
@@ -63,4 +63,4 @@ General memory architecture optimization, replacing WPF, new dependencies, start
 | Passive coexistence | met | Final body click and accented typing through park; unchanged native filters/styles; prior Alt+Tab evidence reused with the new attempt's focus limit documented. |
 | Measured delivery | met | Twelve cases in desktop/walk-measurement-summary.json; one repetition, CPU, resident/private memory and observed draw rate with limits. |
 
-Review: not required — reversible local change; substantive self-review and tests recorded in desktop/VERIFICACION-CAMINATA.md. Visual acceptance remains pending, so the spec stays open.
+Review: not required — reversible local change; substantive self-review, current measurements and tests recorded in desktop/VERIFICACION-IMAGENES.md. VERIFICACION-CAMINATA.md preserves the unchanged control/input checks. Visual acceptance remains pending, so the spec stays open.

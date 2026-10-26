@@ -89,6 +89,11 @@ internal static class Checks
             {
                 var sprite = art.Get(coat, "walk" + frame);
                 Check(sprite.Drawing.IsFrozen && sprite.Width > 0 && sprite.AnchorY == .9, "Cuadro de caminata faltante o sin apoyo registrado.");
+                Check(sprite.Drawing is System.Windows.Media.ImageDrawing, "Cada cuadro debe conservar una imagen completa del gato.");
+                var drawing = (System.Windows.Media.ImageDrawing)sprite.Drawing;
+                var image = (System.Windows.Media.Imaging.BitmapSource)drawing.ImageSource;
+                Check(Math.Abs(drawing.Rect.Bottom - 72) < 1e-8 && drawing.Rect.Left >= 6 && drawing.Rect.Right <= 106, "Pose fuera del apoyo o del margen horizontal.");
+                Check(Math.Abs(drawing.Rect.Width / image.PixelWidth - drawing.Rect.Height / image.PixelHeight) < 1e-8, "La pose completa no debe deformarse.");
             }
         }
         File.WriteAllText(output!, JsonSerializer.Serialize(new { passed = true, assertions, coats = 8 }));

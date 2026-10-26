@@ -15,11 +15,6 @@ internal static class WalkContracts
                 double distance = length * sample / 800;
                 frames.Add(WalkGait.Frame(distance, coat));
                 check(WalkGait.Frame(distance, coat) == WalkGait.Frame(distance + 20 * length, coat), "Walk frames must repeat once per physical stride.");
-                double phase = sample / 800.0;
-                var paw = WalkGait.Paw(phase);
-                check(paw.Lift >= 0 && paw.Lift <= 8, "Paws must stay at or above their contact plane.");
-                if (paw.Planted)
-                    check(Math.Abs(distance + paw.X * WalkGait.Size(coat) - WalkGait.Reach * WalkGait.Size(coat)) < 1e-8, "A supporting paw must stay fixed while the body passes over it.");
             }
             check(frames.Count == 8, "Every coat must use all eight walk frames.");
             var at30 = new CatMotion(coat, 8, 1920);
