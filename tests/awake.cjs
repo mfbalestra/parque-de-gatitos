@@ -11,10 +11,9 @@ function fixture(count=4,seed=19){
 {
  const s=fixture(),w=s.world,last=w.cats.at(-1);
  w.cats.slice(0,-1).forEach(c=>Object.assign(c,{st:'sleep',tm:90}));
- Object.assign(last,{st:'settle',tm:.01,settleDuration:4});
+ Object.assign(last,{st:'sit',tm:0});
  const before=w.cats.slice(0,-1).map(c=>[c.st,c.tm,c.x,c.y]);
- w.updCat(last,.05);
- assert(['sit','groom'].includes(last.st),'The last awake cat must finish settling into a quiet awake activity');
+ for(let i=0;i<100;i++){w.choose(last);assert(!['settle','sleep'].includes(last.st),'The last awake cat must not enter settling');}
  assert.equal(last.x,98);assert.equal(last.y,141);
  assert.deepEqual(w.cats.slice(0,-1).map(c=>[c.st,c.tm,c.x,c.y]),before,'Existing sleepers are untouched');
 }
@@ -34,6 +33,16 @@ for(let count=1;count<=8;count++)for(let asleep=0;asleep<count;asleep++){
  assert(w.reserve(w.cats[2],w.cats[3],'rub'),'An awake encounter remains available');
 }
 const calm=new Set();
+{
+ const s=fixture(),w=s.world,B=s.context.CatBehavior,c=w.cats[0],select=B.select;
+ B.select=(cat,scene,eligible)=>eligible.includes('sleep')?'sleep':'sit';
+ w.choose(c);assert.equal(c.st,'settle','An admitted solo sleep starts by settling');
+ w.cats[1].st='sleep';w.cats[2].st='sleep';
+ assert(!B.canSleep(w.cats,[w.cats[3]]),'Settling already reserves sleep before arrival');
+ for(let i=0;i<200&&c.st==='settle';i++)w.updCat(c,.1);
+ assert.equal(c.st,'sleep','An admitted settle always ends in sleep');
+ B.select=select;
+}
 for(let seed=1;seed<=120;seed++){
  const s=fixture(4,seed),w=s.world,c=w.cats[3];
  w.cats.slice(0,3).forEach(o=>Object.assign(o,{st:'sleep',tm:90,restTravel:true}));
@@ -46,7 +55,7 @@ for(const count of [2,4,8])for(const seed of [2,19,71])for(const phase of ['comp
  w.cycle.setPhase(phase);
  for(let step=0;step<12000;step++){
   w.step(.1);
-  assert(w.cats.some(c=>c.st!=='sleep'&&c.pair?.action!=='cuddle'),'Autonomy must never commit the whole group to sleep');
+  assert(w.cats.some(c=>!['sleep','settle'].includes(c.st)&&c.pair?.action!=='cuddle'),'Autonomy must never commit the whole group to sleep');
  }
 }
 for(const count of [4,8])for(let seed=1;seed<=40;seed++){

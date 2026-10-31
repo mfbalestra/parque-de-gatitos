@@ -1,7 +1,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const assert=require('node:assert/strict');
-const {makeSimulation}=require('./simulation.cjs');
+const {makeSimulation,snapshot}=require('./simulation.cjs');
 const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
 const defaults={cats:8,fps:60,companionMinutes:30,stayMinutes:5};
 const KEY='parque-gatitos.preferences.v1';
@@ -57,7 +57,7 @@ console.log('PASS saved shorter duration uses elapsed time; automatic return/vis
 
 {
   const s=makeSimulation(html),w=s.world;
-  s.frame(1000/60);w.api.togglePause();const before=normal(w.cats),time=w.getTime(),elapsed=w.cycle.elapsed;assert.equal(s.pending.size,0);s.frame(900000);assert.equal(w.getTime(),time);assert.equal(w.cycle.elapsed,elapsed);assert.deepEqual(normal(w.cats),before);
+  s.frame(1000/60);w.api.togglePause();const before=normal(snapshot(w)),time=w.getTime(),elapsed=w.cycle.elapsed;assert.equal(s.pending.size,0);s.frame(900000);assert.equal(w.getTime(),time);assert.equal(w.cycle.elapsed,elapsed);assert.deepEqual(normal(snapshot(w)),before);
   w.api.toggleHide();w.api.toggleHide();assert(w.api.state().paused);assert.equal(s.pending.size,0);
   w.api.togglePause();s.frame(900000+1000/60);assert(Math.abs(w.getTime()-time-1/60)<1e-8);
   s.visibility(true);const background=w.getTime();assert.equal(s.pending.size,0);s.frame(1800000);assert.equal(w.getTime(),background);s.visibility(false);s.frame(1800000+1000/60);assert(Math.abs(w.getTime()-background-1/60)<1e-8);

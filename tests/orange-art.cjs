@@ -11,12 +11,4 @@ for(const action of ['knead','settle','rub','spar'])for(let i=0;i<4;i++){
  assert(r.x+r.w<=data.width&&r.y+r.h<=data.height);assert(r.anchorX>0&&r.anchorX<1&&r.anchorY===1);
  assert(Number.isFinite(data.scale)&&data.scale>0);
 }
-const fakeImages=[];const runtime={window:{PARK_ORANGE:data},Image:class{constructor(){this.naturalWidth=data.width;this.naturalHeight=data.height;fakeImages.push(this)}set src(value){this.onload()}}};
-vm.runInNewContext(fs.readFileSync(path.join(root,'scene-art.js'),'utf8'),runtime);
-const art=runtime.window.createParkArt(null);
-for(const name of Object.keys(data.frames)){
- assert(art.pose({artIndex:0},name));
- for(let coat=1;coat<8;coat++)assert.equal(art.pose({artIndex:coat},name),null,'New art stays orange-only');
-}
-assert.deepEqual(art.pose({artIndex:0},'sleep').rect,data.frames.settle3);
-console.log('PASS 16 whole-cat frames, bounds, alpha format, orange-only gating and continuous sleep artwork');
+console.log('PASS historical orange sheet: 16 whole-cat frames, bounds and alpha format');

@@ -28,6 +28,7 @@ internal sealed class OverlayWindow : Window
     private SettingsPanel? panel;
     private readonly ParkCycle cycle;
     private readonly bool orangePreview;
+    private readonly bool interactionPreview;
     private string? pendingDemo;
     private readonly ParkScene parkScene = new();
     private bool expanded;
@@ -50,8 +51,8 @@ internal sealed class OverlayWindow : Window
         ShowInTaskbar = false; ShowActivated = false; Topmost = true;
         Focusable = false; IsHitTestVisible = false;
         var saved = ParkSettings.Load();
-        orangePreview = options.OrangePreview;
-        var settings = saved with { Cats = orangePreview ? 4 : options.Cats ?? saved.Cats, Fps = options.Fps ?? saved.Fps };
+        orangePreview = options.OrangePreview; interactionPreview = options.InteractionPreview;
+        var settings = saved with { Cats = interactionPreview ? 8 : orangePreview ? 4 : options.Cats ?? saved.Cats, Fps = options.Fps ?? saved.Fps };
         cycle = new ParkCycle(settings); pacer = new FramePacer(settings.Fps);
         surface = new CatSurface(catalog, cycle, parkScene); Content = surface;
         Place(); SetCount(settings.Cats); paused = options.Paused;
@@ -152,7 +153,7 @@ internal sealed class OverlayWindow : Window
 
     private string? SaveSettings(ParkSettings settings)
     {
-        if (orangePreview) return "La vista de gatos naranjas es temporal y no guarda preferencias.";
+        if (orangePreview || interactionPreview) return "La vista de demostración es temporal y no guarda preferencias.";
         if (!settings.Valid) return "Revisá la cantidad, la fluidez y los rangos de minutos.";
         if (cycle.Expanded && settings.Cats != CatCount) return "La cantidad se cambia al volver al escritorio. Las preferencias aplicadas siguen iguales.";
         try

@@ -24,27 +24,27 @@ La compañía funciona **dentro de esta pestaña**. Una página normal no coloca
 
 **Guardar preferencias** conserva los valores juntos en el almacenamiento local de este navegador y de esta dirección. No envía datos ni modifica la configuración de la app de Windows. El ciclo mantiene el tiempo ya transcurrido: si el nuevo límite ya venció, la transición empieza al continuar. Los valores inválidos se señalan junto a los campos; si el navegador no permite guardar, se informa el error y siguen aplicadas las preferencias anteriores. Una configuración guardada ilegible vuelve a los valores iniciales con un aviso. Cerrar y volver a abrir la página inicia una nueva estadía en el parque con las preferencias guardadas.
 
-## Ritmo tranquilo y piloto naranja
+## Ritmo tranquilo e interacciones
 
-Cada gato elige su próxima actividad con probabilidades que dependen de su energía, el lugar y lo que hizo recién. Los tiempos y las elecciones varían entre gatos y entre sesiones. No hay una secuencia global de caminar, saltar y dormir. Los encuentros sí tienen fases coordinadas de acercamiento, contacto y separación para que el movimiento sea comprensible.
+Cada gato elige su próxima actividad con probabilidades que dependen de su energía, el lugar y lo que hizo recién. Los tiempos y las elecciones varían entre gatos y entre sesiones. No hay una secuencia global de caminar, saltar y dormir. En los encuentros es más frecuente que se froten; jugar con las patas y dormir juntos son menos frecuentes. Los encuentros tienen fases coordinadas de acercamiento, contacto y separación para que el movimiento sea comprensible.
 
 También considera al grupo: si la mayoría de sus compañeros está quieta, aumenta gradualmente la probabilidad de pasear, asearse, explorar o interactuar en su próxima elección. El efecto es menor si está cansado y desaparece cuando ya hay suficiente actividad. Puede elegir descansar de todos modos; no hay una cantidad obligatoria de gatos en movimiento ni se despierta a quienes ya duermen. Un gato solo conserva su ritmo individual.
 
-Con varios gatos, una nueva siesta debe dejar al menos uno despierto. La regla cuenta también a quienes ya eligieron dormir y todavía caminan hacia su lugar, y reserva a los dos participantes de una siesta compartida desde el acercamiento. Se vuelve a comprobar al terminar de acomodarse: si es el último despierto, se queda sentado o se asea en su lugar. Estar despierto permite actividades tranquilas; nadie tiene que caminar continuamente y las siestas iniciadas conservan su duración. Un gato solo puede dormir normalmente.
+Con varios gatos, una nueva siesta debe dejar al menos uno despierto. La regla cuenta también a quienes ya eligieron dormir y todavía caminan hacia su lugar o se están acomodando, y reserva a los dos participantes de una siesta compartida desde el acercamiento. Se comprueba antes de empezar a acomodarse; esa preparación siempre termina en sueño. Estar despierto permite actividades tranquilas; nadie tiene que caminar continuamente y las siestas iniciadas conservan su duración. Un gato solo puede dormir normalmente.
 
 Las siestas duran de uno a tres minutos; observar sentado, de 20 a 60 segundos; el aseo, de 15 a 30 segundos. Los paseos buscan un destino cercano. Después de una pelea de juego, ambos descansan sentados al menos 30 segundos. Las visitas al parque y las acciones del usuario pueden cambiar la actividad; las invitaciones autónomas respetan a los gatos que están durmiendo o completando un descanso.
 
 Antes de un descanso individual, cada gato reserva un espacio separado de los demás y camina hasta allí. El tiempo de descanso empieza al llegar. Las zonas de paso, la rampa y su salida quedan fuera de los lugares de descanso; los encuentros intencionales de pareja conservan su contacto. Puede haber cruces breves durante el desplazamiento: la reserva evita la superposición prolongada al quedarse quietos. Si las mantas están ocupadas, busca un lugar para sentarse. «Dejarlos elegir» respeta a quien todavía recorre la estructura; al volver a la compañía también termina la bajada por la rampa antes de salir.
 
-El ritmo se aplica a los ocho pelajes. Las nuevas poses de amasar, acomodarse, frotarse, dormir juntos y jugar con las patas están limitadas al naranja mientras se evalúa el piloto. El amasado en el parque busca una manta libre; durante la compañía puede hacerlo donde está. Los encuentros requieren dos naranjas disponibles, de modo que no aparecen entre los otros pelajes todavía.
+Los ocho pelajes pueden amasar, acomodarse, frotarse, dormir juntos y jugar con las patas, también en parejas de distintos pelajes. Antes de una siesta compartida, ambos se acomodan juntos; esa preparación no consume el tiempo de sueño. El amasado en el parque busca una manta libre; durante la compañía puede hacerlo donde está y no obliga a dormir después.
 
-Para inspeccionarlos, abrí `index.html?orange-preview=1` desde el servidor local: crea cuatro naranjas independientes y no guarda preferencias. La muestra local en `.local/disenos/ritmo-convivencia/index.html` permite pedir cada interacción y luego «Dejarlos elegir». Pedir una demostración es un estímulo explícito; no representa la frecuencia autónoma de esa conducta. La aceptación visual del naranja sigue pendiente antes de extender estos dibujos a los demás pelajes.
+Para inspeccionarlos, abrí `index.html?interaction-preview=1` desde el servidor local: crea ocho gatos de distintos pelajes y no guarda preferencias. `?orange-preview=1` conserva la muestra de cuatro naranjas. La muestra local en `.local/disenos/ritmo-convivencia/index.html` permite pedir cada interacción y luego «Dejarlos elegir». Pedir una demostración es un estímulo explícito; no representa la frecuencia autónoma de esa conducta. Los nuevos pelajes esperan revisión visual.
 
-Las duraciones, pesos iniciales, separaciones de contacto y límites de parejas viven en `behavior-profile.js`, que Windows también lee como datos. Las dos simulaciones conservan sus movimientos y juegos propios; no prometen la misma secuencia de decisiones. Las nuevas imágenes completas y sus recortes se documentan en [ORANGE-ART.md](assets/ORANGE-ART.md).
+Las duraciones, pesos iniciales, separaciones de contacto y límites de parejas viven en `behavior-profile.js`, que Windows también lee como datos. Dormir tiene menos peso que sentarse, asearse o pasear; la energía y el contexto siguen modulando esas preferencias. Las dos simulaciones conservan sus movimientos y juegos propios; no prometen la misma secuencia de decisiones. Las nuevas imágenes completas y sus recortes se documentan en [INTERACTION-ART.md](assets/INTERACTION-ART.md).
 
 ## Abrir una copia local
 
-Descargá la carpeta completa. Conservá junto a `index.html` los archivos `art-data.js`, `walk-data.js`, `orange-art-data.js`, `scene-art.js`, `behavior-profile.js`, `cat-behavior.js`, `park-details.js`, `park-cycle.js`, `web-controls.js`, `web-controls.css` y la carpeta `assets`. Son recursos relativos y no necesitan servicios externos. Para desarrollo, serví esa carpeta con un servidor HTTP local. La apertura directa desde disco depende de las reglas de almacenamiento del navegador; la comprobación de entrega usa HTTP.
+Descargá la carpeta completa. Conservá junto a `index.html` los archivos `art-data.js`, `walk-data.js`, `interaction-art-data.js`, `scene-art.js`, `behavior-profile.js`, `cat-behavior.js`, `park-details.js`, `park-cycle.js`, `web-controls.js`, `web-controls.css` y la carpeta `assets`. Son recursos relativos y no necesitan servicios externos. Para desarrollo, serví esa carpeta con un servidor HTTP local. La apertura directa desde disco depende de las reglas de almacenamiento del navegador; la comprobación de entrega usa HTTP.
 
 ## Cómo está hecho
 
@@ -73,6 +73,7 @@ node tests/orange-art.cjs
 node tests/spatial.cjs
 node tests/group.cjs
 node tests/awake.cjs
+node tests/interactions.cjs
 ```
 
 La primera prueba verifica las actividades, las coordenadas del puntero, el límite de ovillos y el teclado. La segunda comprueba los cinco disparadores de salto, la continuidad, la gravedad, las fases, el aterrizaje y el apoyo estable al rascar, a distintas frecuencias de actualización y durante recorridos prolongados. La tercera comprueba los ocho pelajes, los recortes, la transparencia declarada por los PNG, el apoyo, la inversión de dirección y el respaldo ante recursos inválidos.

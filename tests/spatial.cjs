@@ -5,6 +5,7 @@ function cluster(count,seed,companion=false){
  const settings={cats:count,fps:60,companionMinutes:30,stayMinutes:5};
  const sim=makeSimulation(html,{seed,storage:{'parque-gatitos.preferences.v1':JSON.stringify({version:1,settings})}}),w=sim.world;
  if(companion)w.cycle.setPhase('companion');
+ for(const pair of [...w.pairs])w.cancelPair(pair);
  w.cats.forEach(c=>Object.assign(c,{x:237,y:companion?141:118,z:0,motion:null,st:'sleep',tm:90,onS:false,pair:null,restSpot:null,restTravel:false}));
  return sim;
 }

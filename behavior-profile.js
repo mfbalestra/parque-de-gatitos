@@ -3,6 +3,7 @@ window.PARK_BEHAVIOR = {
   "durations": {"sleep": [60,180], "sit": [20,60], "groom": [15,30], "wander": [5,15], "knead": [8,14], "settle": [3,5], "rub": [5,8], "cuddle": [60,120], "spar": [5,10]},
   "playCooldown": 30,
   "socialCooldown": 45,
+  "socialWeights": {"rub":5,"cuddle":1,"spar":1},
   "groupBalance": {"quietThreshold":0.5,"minimumEnergyInfluence":0.35,"multipliers":{"sleep":0.12,"sit":0.35,"wander":4,"groom":1.4,"knead":1.3,"social":1.6,"environment":1.8}},
   "clearanceX": 26,
   "clearanceY": 14,
@@ -11,6 +12,6 @@ window.PARK_BEHAVIOR = {
   "pairLimitCompanion": 1,
   "pairLimitParkFour": 1,
   "pairLimitParkEight": 2,
-  "weightsCompanion": {"sleep": 5, "sit": 5, "groom": 2, "wander": 2, "knead": 1, "social": 1},
-  "weightsPark": {"sleep": 3, "sit": 3, "groom": 2, "wander": 3, "knead": 1, "social": 2, "environment": 2}
+  "weightsCompanion": {"sleep": 1.2, "sit": 5, "groom": 2, "wander": 2, "knead": 1, "social": 1},
+  "weightsPark": {"sleep": 0.8, "sit": 3, "groom": 2, "wander": 3, "knead": 1, "social": 2, "environment": 2}
 };

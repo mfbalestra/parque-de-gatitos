@@ -32,6 +32,7 @@ for(const count of [4,8])for(const seed of [19,71,7123]){
 assert(after<before*.75,'Group context must materially reduce completely quiet periods across seeds');
 assert.equal(JSON.stringify(run(1,19,true)),JSON.stringify(run(1,19,false)),'Solo behavior must be unchanged');
 const sim=makeSimulation(html),w=sim.world;
+for(const pair of [...w.pairs])w.cancelPair(pair);
 w.cats.forEach((c,i)=>Object.assign(c,{st:'sleep',tm:90,x:20+i*28,y:141,onS:false,z:0,motion:null,restSpot:null,restTravel:false}));
 for(let i=0;i<100;i++)w.step(.1);
 assert(w.cats.every(c=>c.st==='sleep'&&c.tm>=80-1e-6),'Group balancing never wakes existing sleepers');

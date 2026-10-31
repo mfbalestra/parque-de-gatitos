@@ -187,6 +187,8 @@ internal static class BehaviorContracts
             var cats = new[] { new CatMotion(0, 1, 1920) };
             var behavior = new CatBehavior(7);
             behavior.Demo(cats, action);
+            if (action == "sleep")
+                while (behavior.Inspect(0).action == "settle") behavior.Advance(.1, cats, 1920, 1032, false);
             double minimum = action == "sleep" ? 60 : action == "sit" ? 20 : 15;
             for (double elapsed = 0; elapsed < minimum - .2; elapsed += .1)
             {

@@ -85,6 +85,17 @@ internal static class Checks
         for (int coat = 0; coat < 8; coat++)
         {
             Check(art.Get(coat, "standing").Width > 0, "Arte faltante.");
+            foreach (string action in new[] { "knead", "settle", "rub", "spar" })
+            for (int frame = 0; frame < 4; frame++)
+            {
+                var sprite = art.Get(coat, action + frame);
+                Check(sprite.Drawing.IsFrozen && sprite.Width > 0 && sprite.Height > 0 && sprite.AnchorY == 1,
+                    "La interacción necesita una imagen completa con apoyo en el suelo.");
+                Check(sprite.Drawing is System.Windows.Media.ImageDrawing drawing && drawing.ImageSource is System.Windows.Media.Imaging.CroppedBitmap,
+                    "Las interacciones conservan cuerpo y patas en un único recorte.");
+            }
+            Check(ReferenceEquals(art.Get(coat, "sleep"), art.Get(coat, "settle3")),
+                "Dormir debe conservar el último cuadro de acomodarse en cada pelaje.");
             for (int frame = 0; frame < 8; frame++)
             {
                 var sprite = art.Get(coat, "walk" + frame);

@@ -10,13 +10,13 @@ namespace Gatitos;
 
 internal static class OrangeArt
 {
-    public static Dictionary<string, SpriteCatalog.Sprite> Load()
+    public static Dictionary<string, SpriteCatalog.Sprite> Load(int coat)
     {
-        string source = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "orange-art-data.js"));
+        string source = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "interaction-art-data.js"));
         using var document = JsonDocument.Parse(source.Substring(source.IndexOf('{'), source.LastIndexOf('}') - source.IndexOf('{') + 1));
-        var data = document.RootElement;
+        var data = document.RootElement.GetProperty("coats")[coat];
         var image = new BitmapImage(); image.BeginInit(); image.CacheOption = BitmapCacheOption.OnLoad;
-        image.UriSource = new Uri(Path.Combine(AppContext.BaseDirectory, "assets", "acciones-naranja.png"));
+        image.UriSource = new Uri(Path.Combine(AppContext.BaseDirectory, data.GetProperty("url").GetString()!));
         image.EndInit(); image.Freeze();
         var result = new Dictionary<string, SpriteCatalog.Sprite>();
         double scale = data.GetProperty("scale").GetDouble() * 4;

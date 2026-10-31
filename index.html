@@ -52,7 +52,7 @@ canvas:focus-visible{outline:3px solid #fff;outline-offset:-6px;box-shadow:0 0 0
 </main>
 <script src="art-data.js"></script>
 <script src="walk-data.js"></script>
-<script src="orange-art-data.js"></script>
+<script src="interaction-art-data.js"></script>
 <script src="scene-art.js"></script>
 <script src="park-details.js"></script>
 <script src="behavior-profile.js"></script>
@@ -67,6 +67,8 @@ g.setTransform(cv.width/W,0,0,cv.height/H,0,0);g.imageSmoothingEnabled=false;
 const art=window.createParkArt?window.createParkArt(window.PARK_ART):null;
 const behavior=window.CatBehavior,profile=window.PARK_BEHAVIOR;
 const orangePreview=typeof location!=='undefined'&&new URLSearchParams(location.search).get('orange-preview')==='1';
+const interactionPreview=typeof location!=='undefined'&&new URLSearchParams(location.search).get('interaction-preview')==='1';
+const demoPreview=orangePreview||interactionPreview;
 let seed=Math.floor(Math.random()*2147483646)+1;const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646};
 const R=(a,b)=>a+rnd()*(b-a),RI=(a,b)=>Math.floor(R(a,b+1)),pick=a=>a[Math.floor(rnd()*a.length)];
 const clampY=y=>Math.max(YMIN,Math.min(YMAX,y));
@@ -233,22 +235,22 @@ function updatePair(pair,dt){
  if(pair.phase==='approach'){
   pair.time+=dt;if(pair.time>20){cancelPair(pair);return;}
   const da=moveTo(a,pair.left,pair.y,a.sp*.65,dt),db=moveTo(b,pair.right,pair.y,b.sp*.65,dt);
-  if(da<.05&&db<.05){pair.phase='contact';pair.time=behavior.duration(a,pair.action);a.dir=1;b.dir=-1;if(pair.action==='spar'){a.fk='spar0';b.fk='spar2';}else a.fk=b.fk=pair.action==='cuddle'?'sleep':pair.action+'0';}
+  if(da<.05&&db<.05){pair.phase='contact';pair.settleDuration=pair.action==='cuddle'?behavior.duration(a,'settle'):0;pair.settleRemaining=pair.settleDuration;pair.time=pair.settleDuration+behavior.duration(a,pair.action);a.dir=1;b.dir=-1;if(pair.action==='spar'){a.fk='spar0';b.fk='spar2';}else a.fk=b.fk=pair.action==='cuddle'?'settle0':pair.action+'0';}
  }else if(pair.phase==='contact'){
-  pair.time-=dt;const frame=Math.floor(a.an*3)%4;
+  pair.time-=dt;pair.settleRemaining=Math.max(0,pair.settleRemaining-dt);const frame=Math.floor(a.an*3)%4;
   if(pair.action==='spar'){a.fk='spar'+frame;b.fk='spar'+((frame+2)%4);}
-  else a.fk=b.fk=pair.action==='cuddle'?'sleep':pair.action+frame;
+  else a.fk=b.fk=pair.action==='cuddle'?(pair.settleRemaining>0?'settle'+Math.min(3,Math.floor((1-pair.settleRemaining/pair.settleDuration)*4)):'sleep'):pair.action+frame;
   if(pair.time<=0){pair.phase='exit';a.fk=b.fk=null;pair.time=2;}
  }else{pair.time-=dt;moveTo(a,Math.max(9,pair.left-8),pair.y,a.sp*.5,dt);moveTo(b,Math.min(W-9,pair.right+8),pair.y,b.sp*.5,dt);if(pair.time<=0)cancelPair(pair);}
 }
 function choose(c){
  if(c.pair)return;if(box.cat===c)box.cat=null;c.tgt=null;c.at=0;c.mat=null;c.restSpot=null;c.restTravel=false;
  const scene=cycle?.phase==='companion'?'companion':'park';
- const eligible=['sit','groom','wander'];if(behavior.canSleep(cats,[c]))eligible.push('sleep');if(c.artIndex===0)eligible.push('knead','settle');
- const partners=cats.filter(o=>o!==c&&o.artIndex===0&&available(o)&&o.socialCooldown<=0);
- if(c.artIndex===0&&c.socialCooldown<=0&&partners.length)eligible.push('social');if(scene==='park'&&c.cooldown<=0)eligible.push('environment');
- let action=behavior.select(c,scene,eligible,cats.filter(o=>o!==c));c.recent=action;if(action==='knead'&&behavior.random(c)<.35)action='settle';
- if(action==='social'){const partner=partners[Math.floor(behavior.random(c)*partners.length)],actions=c.cooldown<=0&&partner.cooldown<=0?['rub','cuddle','spar']:['rub','cuddle'];if(reserve(c,partner,actions[Math.floor(behavior.random(c)*actions.length)]))return;}
+ const eligible=['sit','groom','wander','knead'];if(behavior.canSleep(cats,[c]))eligible.push('sleep');
+ const partners=cats.filter(o=>o!==c&&available(o)&&o.socialCooldown<=0);
+ if(c.socialCooldown<=0&&partners.length)eligible.push('social');if(scene==='park'&&c.cooldown<=0)eligible.push('environment');
+ let action=behavior.select(c,scene,eligible,cats.filter(o=>o!==c));c.recent=action;if(action==='sleep')action='settle';
+ if(action==='social'){const partner=partners[Math.floor(behavior.random(c)*partners.length)],actions=c.cooldown<=0&&partner.cooldown<=0?['rub','cuddle','spar']:['rub','cuddle'];if(reserve(c,partner,behavior.selectSocial(c,actions)))return;}
  if(action==='environment'){const choices=['gym','scratch','box','ball','fly','roll','stretch'];const choice=choices[Math.floor(behavior.random(c)*choices.length)];
   if(choice==='gym'&&cats.filter(o=>o.st==='gym').length<3){c.st='gym';c.onS=false;c.pt=0;c.tm=20;return;}
   if(choice==='box'&&!box.cat){c.st='box';box.cat=c;c.tm=15;return;}
@@ -321,7 +323,7 @@ case'wander':if(moveTo(c,c.tx,c.ty,c.sp,dt)<1.5||c.tm<0)choose(c);break;
 case'sit':if(c.tm<0)choose(c);break;
 case'kneadApproach':if(!freeRest(c,c.tx,c.ty)){c.restSpot=null;startKnead(c);break;}if(moveTo(c,c.tx,c.ty,c.sp,dt)<.1){c.st='knead';c.tm=behavior.duration(c,'knead');c.restTravel=false;}break;
 case'knead':fk='knead'+Math.floor(c.an*3)%4;if(c.tm<0)choose(c);break;
-case'settle':fk='settle'+Math.min(3,Math.floor((1-c.tm/c.settleDuration)*4));if(c.tm<=0){c.st=behavior.canSleep(cats,[c])?'sleep':behavior.random(c)<.5?'sit':'groom';c.tm=behavior.duration(c,c.st);c.recent=c.st;fk=c.st==='groom'?'groomA':c.st;}break;
+case'settle':fk='settle'+Math.min(3,Math.floor((1-c.tm/c.settleDuration)*4));if(c.tm<=0){c.st='sleep';c.tm=behavior.duration(c,'sleep');c.recent='sleep';fk='sleep';}break;
 case'social':break;
 case'sleep':if(rnd()<dt*0.7)zs.push({x:c.x+c.dir*4,y:c.y-11,t:0});if(c.tm<0)choose(c);break;
 case'stretch':fk='stretch';if(c.tm<0)choose(c);break;
@@ -412,7 +414,7 @@ for(let i=0;i<4;i++)flies.push({kind:'fly',x:R(20,W-20),y:R(60,115),a:R(0,6),t:R
 balls.push(newBall(70,128),newBall(180,118));
 let loaded;
 try{loaded=window.ParkCycle.load(window.localStorage);}catch{loaded=window.ParkCycle.load(null);}
-for(let i=0;i<(orangePreview?4:loaded.settings.cats);i++)cats.push(newCat(R(14,W-14),R(YMIN,YMAX)));
+for(let i=0;i<(orangePreview?4:interactionPreview?8:loaded.settings.cats);i++)cats.push(newCat(R(14,W-14),R(YMIN,YMAX)));
 
 function throwBall(x,y){
 const o=newBall(Math.max(6,Math.min(W-6,x)),y);o.vy=-10;balls.push(o);if(balls.length>7)balls.shift();
@@ -457,13 +459,13 @@ const api={state:()=>({settings:{...cycle.settings},phase:cycle.phase,elapsed:cy
 togglePause(){running=!running;announce();refreshLoop();},
 toggleHide(){hidden=!hidden;document.body.classList.toggle('scene-hidden',hidden);cv.tabIndex=hidden?-1:0;cv.setAttribute('aria-hidden',String(hidden));refreshLoop();},
 visit(){cycle.visit();refreshLoop();},back(){cycle.back();refreshLoop();},
-save(settings){if(orangePreview)return 'La demostración no guarda preferencias.';if(cycle.phase!=='companion'&&settings.cats!==cycle.settings.cats)return 'Volvé a la compañía para cambiar la cantidad.';let error;try{error=window.ParkCycle.save(window.localStorage,settings);}catch{error='No se pudo guardar en este navegador. Las preferencias aplicadas siguen iguales.';}if(error)return error;
+save(settings){if(demoPreview)return 'La demostración no guarda preferencias.';if(cycle.phase!=='companion'&&settings.cats!==cycle.settings.cats)return 'Volvé a la compañía para cambiar la cantidad.';let error;try{error=window.ParkCycle.save(window.localStorage,settings);}catch{error='No se pudo guardar en este navegador. Las preferencias aplicadas siguen iguales.';}if(error)return error;
 const changed=settings.cats!==cycle.settings.cats;cycle.configure(settings);if(changed&&!orangePreview){cancelPairs();cats.length=0;box.cat=null;for(let i=0;i<settings.cats;i++){const c=newCat(R(14,W-14),141);resetVisitor(c);choose(c);cats.push(c);}box.cat=null;homes=cats.map(c=>c.x);}loaded.message='';refreshLoop();return null;}};
-if(orangePreview)window.orangeDemo={
- choose(action){if(!['knead','settle','rub','cuddle','spar'].includes(action))return false;if(cats.some(c=>c.motion||c.z||c.onS))return false;cancelPairs();box.cat=null;
+if(demoPreview)window.interactionDemo=window.orangeDemo={
+ choose(action,coatIndex=0){if(!['knead','settle','rub','cuddle','spar'].includes(action))return false;if(cats.some(c=>c.motion||c.z||c.onS))return false;const actor=cats.find(c=>c.artIndex===coatIndex);if(!actor)return false;cancelPairs();box.cat=null;
   for(const c of cats){c.st='sit';c.tm=30;c.fk=null;c.at=0;c.mat=null;c.restSpot=null;c.restTravel=false;c.cooldown=0;c.socialCooldown=0;}
-  if(action==='knead'||action==='settle'){cats[0].st=action;cats[0].tm=behavior.duration(cats[0],action);if(action==='settle')cats[0].settleDuration=cats[0].tm;else startKnead(cats[0]);return true;}
-  let pair=null,shortest=Infinity;for(let i=0;i<cats.length;i++)for(let j=i+1;j<cats.length;j++){const d=Math.hypot(cats[i].x-cats[j].x,cats[i].y-cats[j].y);if(d<shortest){shortest=d;pair=[cats[i],cats[j]];}}
+  if(action==='knead'||action==='settle'){if(action==='settle'&&!behavior.canSleep(cats,[actor]))return false;actor.st=action;actor.tm=behavior.duration(actor,action);if(action==='settle')actor.settleDuration=actor.tm;else startKnead(actor);return true;}
+  const partner=cats.filter(c=>c!==actor).sort((a,b)=>Math.hypot(a.x-actor.x,a.y-actor.y)-Math.hypot(b.x-actor.x,b.y-actor.y))[0];if(!partner)return false;const pair=[actor,partner];
   pair[0].tm=pair[1].tm=0;return reserve(pair[0],pair[1],action);},
  reset(){cancelPairs();cats.filter(c=>!c.motion&&!c.onS&&!c.z).forEach(choose);},
  setFps(fps){if(fps!==30&&fps!==60)return false;cycle.configure({...cycle.settings,fps});refreshLoop();return true;},

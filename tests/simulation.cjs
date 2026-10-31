@@ -21,7 +21,7 @@ function makeSimulation(html,options={}){
   let randomSeed=options.seed||7123;const math=Object.create(Math);math.random=()=>{randomSeed=randomSeed*16807%2147483647;return (randomSeed-1)/2147483646;};
   const context={console,Math:math,performance:{now:()=>now},requestAnimationFrame:fn=>{frame=fn;pending.set(++frameId,fn);return frameId;},cancelAnimationFrame:id=>pending.delete(id),document,
     localStorage:{getItem:key=>{if(options.readError)throw Error('storage denied');return storage.get(key)??null;},setItem:(key,value)=>{if(options.writeError)throw Error('storage denied');storage.set(key,value);}},
-    location:{search:options.orangePreview?'?orange-preview=1':''},URLSearchParams,
+    location:{search:options.orangePreview?'?orange-preview=1':options.interactionPreview?'?interaction-preview=1':''},URLSearchParams,
     matchMedia:()=>({matches:!!options.reducedMotion,addEventListener:(name,fn)=>mediaListeners.push(fn)})};
   context.window=context;
   vm.createContext(context);
@@ -29,14 +29,15 @@ function makeSimulation(html,options={}){
   assert(inline.includes('function step(dt)'), 'The real simulation must be loaded');
   for(const name of ['behavior-profile.js','cat-behavior.js','park-cycle.js','web-controls.js'])vm.runInContext(fs.readFileSync(path.join(root,name),'utf8'),context);
   if(fs.existsSync(path.join(root,'walk-data.js')))vm.runInContext(fs.readFileSync(path.join(root,'walk-data.js'),'utf8'),context);
-  const hook=`globalThis.__test={step,render,cats,balls,flies,box,GYM,JUMP,beginJump,advanceJump,updCat,drawCat,moveTo,walkPose,cycle,api,choose,reserve,cancelPair,pairs,getTime:()=>t,getSeed:()=>seed};`;
+  const hook=`globalThis.__test={step,render,cats,balls,flies,box,GYM,JUMP,beginJump,advanceJump,updCat,drawCat,moveTo,walkPose,cycle,api,choose,reserve,updatePair,cancelPair,pairs,getTime:()=>t,getSeed:()=>seed};`;
   vm.runInContext(inline.replace(/\}\)\(\);\s*$/,hook+'})();'),context,{timeout:3000});
   return {world:context.__test,context,element,storage,options,pending,click:(x,y)=>listeners.click({clientX:rectangle.left+x*rectangle.width,clientY:rectangle.top+y*rectangle.height}),key:key=>listeners.keydown({key,repeat:false,preventDefault(){}}),rectangle,frame:value=>{now=value;pending.clear();frame(value);},status,media:matches=>mediaListeners.forEach(fn=>fn({matches})),visibility:hidden=>{document.hidden=hidden;documentListeners.visibilitychange();}};
 }
 function snapshot(w){
   const objects=[...w.cats,...w.balls,...w.flies];
-  const cats=w.cats.map(cat=>Object.fromEntries(Object.keys(cat).filter(k=>k!=='fr'&&k!=='artIndex').sort().map(k=>[k,k==='tgt'?objects.indexOf(cat[k]):cat[k]])));
-  return {seed:w.getSeed(),t:w.getTime(),cats,balls:w.balls,flies:w.flies,box:w.cats.indexOf(w.box.cat)};
+  const cats=w.cats.map(cat=>Object.fromEntries(Object.keys(cat).filter(k=>k!=='fr'&&k!=='artIndex').sort().map(k=>[k,k==='tgt'?objects.indexOf(cat[k]):k==='pair'?w.pairs.indexOf(cat[k]):cat[k]])));
+  const pairs=w.pairs.map(pair=>({...pair,cats:pair.cats.map(c=>w.cats.indexOf(c))}));
+  return {seed:w.getSeed(),t:w.getTime(),cats,pairs,balls:w.balls,flies:w.flies,box:w.cats.indexOf(w.box.cat)};
 }
 function trace(html,throws){
   const sim=makeSimulation(html),hash=crypto.createHash('sha256'),states=new Set(),gym=new Set();
@@ -95,4 +96,4 @@ function run(){
   console.log('PASS keyboard aim, throw, pause/resume and reduced motion');
 }
 if(require.main===module)run();
-module.exports={makeSimulation,trace};
+module.exports={makeSimulation,trace,snapshot};

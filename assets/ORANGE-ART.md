@@ -1,6 +1,6 @@
 # Piloto naranja de convivencia
 
-Fecha: 2026-10-31. Estado: implementado para inspección; aceptación visual pendiente. Sólo se generó el pelaje naranja. La referencia de identidad fue `desktop/assets/walk-naranja.png`, el ciclo aprobado por el propietario.
+Fecha: 2026-10-31. Estado: piloto naranja aceptado por el propietario. Este documento conserva la procedencia de su lámina original; la extensión autorizada a los otros siete pelajes se describe en [INTERACTION-ART.md](INTERACTION-ART.md). La referencia de identidad fue `desktop/assets/walk-naranja.png`, el ciclo aprobado por el propietario.
 
 La herramienta integrada `imagegen` generó una lámina de 16 animales completos: cuatro cuadros para amasar, cuatro para acomodarse, cuatro para rozar la cabeza y cuatro para jugar con las patas. Se pidió una segunda pasada conservadora de transparencia. El PNG final conserva alfa real; el color RGB de los píxeles transparentes no forma parte del fondo visible. SHA256: `49adb2aa413262bcadc51fdd7a28d9cea55860884f7cc10a1a46a15475caf432`.
 

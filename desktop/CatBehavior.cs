@@ -12,7 +12,7 @@ internal sealed class CatBehavior
         public readonly Random Random;
         public readonly double Sociability;
         public string Action = "", Previous = "";
-        public double Remaining, Age, Energy = .6, Cooldown, X, Depth;
+        public double Remaining, Age, Energy = .6, Cooldown, X, Depth, PairSettleDuration;
         public int Partner = -1;
         public bool Gym;
         public bool Contact;
@@ -81,12 +81,13 @@ internal sealed class CatBehavior
         Ensure(current);
         Start(index, action);
     }
-    private void Start(int i, string action)
+    private void Start(int i, string action, bool finishSettling = false)
     {
         var s = states[i];
         bool settling = s.Action == "settle" && action == "sleep";
-        if (action == "sleep" && !CanSleep(i)) action = s.Random.NextDouble() < .5 ? "sit" : "groom";
-        bool retainRest = s.RestReserved && ((s.Action == "knead" && action == "settle") || settling);
+        if (!finishSettling && action is "sleep" or "settle")
+            action = CanSleep(i) ? "settle" : s.Random.NextDouble() < .5 ? "sit" : "groom";
+        bool retainRest = s.RestReserved && settling;
         s.Previous = s.Action; s.Action = action; s.Age = 0;
         if (!retainRest) s.RestReserved = s.RestReady = false;
         if (action == "knead") s.Mat = -1;
@@ -95,7 +96,7 @@ internal sealed class CatBehavior
     }
     private static bool IsRest(string action) => action is "sleep" or "sit" or "groom" or "settle" or "knead";
     internal bool CanSleep(params int[] participants) => states.Length == 1 ||
-        states.Where((s, i) => !participants.Contains(i)).Any(s => s.Action is not ("sleep" or "cuddle"));
+        states.Where((s, i) => !participants.Contains(i)).Any(s => s.Action is not ("sleep" or "settle" or "cuddle"));
     private bool FindRest(int i, double width, double height, bool park, bool matOnly = false)
     {
         var s = states[i]; var cat = cats[i];
@@ -139,6 +140,8 @@ internal sealed class CatBehavior
         states[i].Partner = j; states[j].Partner = i;
         states[i].Contact = states[j].Contact = false;
         states[i].Exiting = states[j].Exiting = false;
+        states[i].PairSettleDuration = states[j].PairSettleDuration = action == "cuddle" ? Duration("settle", states[i].Random) : 0;
+        states[i].Remaining += states[i].PairSettleDuration;
         states[j].Remaining = states[i].Remaining;
         double center = (cats[i].X + cats[j].X) / 2;
         double offset = Data.GetProperty("pairSeparation").GetProperty(action).GetDouble() * 2 * (cats[i].X <= cats[j].X ? -1 : 1);
@@ -202,7 +205,9 @@ internal sealed class CatBehavior
                         s.Energy = Math.Max(0, s.Energy - dt * .015);
                         other.Energy = Math.Max(0, other.Energy - dt * .015);
                     }
-                    string pose = s.Action == "cuddle" ? "sleep" : s.Action + ((int)(s.Age * 2) % 4);
+                    string pose = s.Action == "cuddle"
+                        ? s.Age < s.PairSettleDuration ? "settle" + Math.Min(3, (int)(s.Age / s.PairSettleDuration * 4)) : "sleep"
+                        : s.Action + ((int)(s.Age * 2) % 4);
                     cat.SetPose(pose);
                     mate.SetPose(s.Action == "spar" ? "spar" + (((int)(s.Age * 2) + 2) % 4) : pose);
                     if (s.Remaining <= 0)
@@ -218,8 +223,12 @@ internal sealed class CatBehavior
             }
             if (s.Remaining <= 0)
             {
-                if (s.Action == "knead") Start(i, "settle");
-                else if (s.Action == "settle") Start(i, "sleep");
+                if (s.Action == "settle")
+                {
+                    double elapsed = -s.Remaining;
+                    Start(i, "sleep", true);
+                    s.Remaining -= elapsed;
+                }
                 else Choose(i, width, height, park);
             }
             if (IsRest(s.Action) && !s.RestReady)
@@ -290,7 +299,7 @@ internal sealed class CatBehavior
              (other.Action == "cuddle" && other.Contact && !other.Exiting))).Count() / (double)(states.Length - 1) : 0;
         int pairCount = states.Count(x => x.Partner >= 0 && x.Action == "spar") / 2;
         int limit = Data.GetProperty(park ? (cats.Length >= 8 ? "pairLimitParkEight" : "pairLimitParkFour") : "pairLimitCompanion").GetInt32();
-        int[] partners = Enumerable.Range(0, cats.Length).Where(j => j != i && cats[j].Coat == 0 && states[j].Partner < 0 && !states[j].Gym && (states[j].Remaining <= 0 || states[j].Action == "wander") && states[j].Cooldown <= 0 &&
+        int[] partners = Enumerable.Range(0, cats.Length).Where(j => j != i && states[j].Partner < 0 && !states[j].Gym && (states[j].Remaining <= 0 || states[j].Action == "wander") && states[j].Cooldown <= 0 &&
             !Enumerable.Range(0, cats.Length).Any(k => k != i && k != j &&
                 cats[k].X > Math.Min(cats[i].X, cats[j].X) - 110 && cats[k].X < Math.Max(cats[i].X, cats[j].X) + 110 &&
                 Math.Abs(cats[k].Depth - (cats[i].Depth + cats[j].Depth) / 2) < 70)).ToArray();
@@ -304,9 +313,8 @@ internal sealed class CatBehavior
             if (names[n] == "social" || names[n] == "environment") values[n] *= .5 + s.Energy;
             if (names[n] == "social") values[n] *= .5 + s.Sociability;
             values[n] *= GroupFactor(names[n], quiet, s.Energy);
-            if (names[n] == "knead" && cats[i].Coat != 0) values[n] = 0;
             if (names[n] == "environment" && s.Cooldown > 0) values[n] = 0;
-            if (names[n] == "social" && (cats[i].Coat != 0 || partners.Length == 0 || s.Cooldown > 0 || pairCount >= limit)) values[n] = 0;
+            if (names[n] == "social" && (partners.Length == 0 || s.Cooldown > 0 || pairCount >= limit)) values[n] = 0;
         }
         double choice = s.Random.NextDouble() * values.Sum();
         int selected = 0;
@@ -315,7 +323,12 @@ internal sealed class CatBehavior
         if (action == "social")
         {
             string[] actions = { "rub", "cuddle", "spar" };
-            StartPair(i, partners[s.Random.Next(partners.Length)], actions[s.Random.Next(actions.Length)]); return;
+            var socialWeights = Data.GetProperty("socialWeights");
+            double socialChoice = s.Random.NextDouble() * actions.Sum(name => socialWeights.GetProperty(name).GetDouble());
+            int selectedSocial = 0;
+            while (selectedSocial < actions.Length - 1 &&
+                (socialChoice -= socialWeights.GetProperty(actions[selectedSocial]).GetDouble()) >= 0) selectedSocial++;
+            StartPair(i, partners[s.Random.Next(partners.Length)], actions[selectedSocial]); return;
         }
         bool gym = action == "environment";
         if (gym) action = "wander";

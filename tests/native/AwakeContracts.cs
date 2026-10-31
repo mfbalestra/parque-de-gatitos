@@ -20,14 +20,11 @@ internal static class AwakeContracts
         var group = Cats(4); var settling = new CatBehavior(19);
         for (int i = 0; i < 3; i++) settling.DemoAt(group, i, "sleep");
         settling.DemoAt(group, 3, "settle");
-        for (int frame = 0; frame < 500 && settling.Inspect(3).action == "settle"; frame++)
+        check(settling.Inspect(3).action is "sit" or "groom", "The last cat cannot begin settling.");
+        for (int frame = 0; frame < 500 && Enumerable.Range(0, 3).Any(i => settling.Inspect(i).action == "settle"); frame++)
             settling.Advance(.05, group, 1920, 1032, false);
-        check(settling.Inspect(3).action is "sit" or "groom", "The last cat must settle into quiet wakefulness.");
-        double x = group[3].X, depth = group[3].Depth;
-        settling.Advance(.05, group, 1920, 1032, false);
-        check(group[3].X == x && group[3].Depth == depth, "The last cat can stay awake in place.");
         for (int i = 0; i < 3; i++) check(settling.Inspect(i).action == "sleep" && settling.Inspect(i).remaining > 30,
-            "Existing sleepers must retain their siestas.");
+            "Admitted settling must lead to a full siesta.");
         var pairs = new CatBehavior(2); group = Cats(4);
         pairs.Demo(group, "cuddle");
         check(!pairs.CanSleep(2, 3), "An approaching pair already reserves two sleeping cats.");
@@ -41,14 +38,10 @@ internal static class AwakeContracts
         var kneading = new CatBehavior(19); group = Cats(4);
         for (int i = 0; i < 3; i++) kneading.DemoAt(group, i, "sleep");
         kneading.DemoAt(group, 3, "knead");
-        bool sawSettle = false;
-        for (int frame = 0; frame < 800 && (kneading.Inspect(3).action is "knead" or "settle"); frame++)
-        {
+        for (int frame = 0; frame < 800 && kneading.Inspect(3).action == "knead"; frame++)
             kneading.Advance(.05, group, 1920, 1032, false);
-            sawSettle |= kneading.Inspect(3).action == "settle";
-        }
-        check(sawSettle && (kneading.Inspect(3).action is "sit" or "groom"),
-            "The complete knead-settle chain must respect the last-awake reservation.");
+        check(kneading.Inspect(3).action is not ("settle" or "sleep"),
+            "Kneading does not force sleep and the last cat remains awake.");
         foreach (int count in new[] { 2, 4, 8 })
         foreach (int seed in new[] { 2, 19, 71 })
         foreach (bool park in new[] { false, true })
@@ -57,7 +50,7 @@ internal static class AwakeContracts
             for (int frame = 0; frame < 12000; frame++)
             {
                 behavior.Advance(.1, cats, 1920, 1032, park);
-                check(Enumerable.Range(0, count).Any(i => behavior.Inspect(i).action is not ("sleep" or "cuddle")),
+                check(Enumerable.Range(0, count).Any(i => behavior.Inspect(i).action is not ("sleep" or "settle" or "cuddle")),
                     "Autonomy must never commit the whole group to sleep.");
             }
         }

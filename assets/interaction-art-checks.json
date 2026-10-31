@@ -1,0 +1,50 @@
+[
+  {
+    "id": "naranja",
+    "sha256": "49adb2aa413262bcadc51fdd7a28d9cea55860884f7cc10a1a46a15475caf432",
+    "transparent": 0.4776452382405599,
+    "frames": 16
+  },
+  {
+    "id": "gris",
+    "sha256": "461e41cb49810fd41753b223a668a5818106f2565236473c0a34486ff12391ef",
+    "transparent": 0.5120131174723307,
+    "frames": 16
+  },
+  {
+    "id": "calico",
+    "sha256": "e9048c27a247a2c9f46f841fbc6c6f3bb477794ea2f5458f985f7b10e9ec6f56",
+    "transparent": 0.49098841349283856,
+    "frames": 16
+  },
+  {
+    "id": "negro",
+    "sha256": "ffd16960957e7d202fa72fd923b3b9e8b16833c530d92dbf8b734e36f693088b",
+    "transparent": 0.5166600545247396,
+    "frames": 16
+  },
+  {
+    "id": "blanco",
+    "sha256": "75f3235a3084b933eb43b1c65146380fff35b5555dc4ab1bc4cd659d9eebf348",
+    "transparent": 0.4769287109375,
+    "frames": 16
+  },
+  {
+    "id": "tuxedo",
+    "sha256": "be7d58e675cc1c153dfc103da7f7c5ef2341c0d27a1cff5cd107a443a0289247",
+    "transparent": 0.5127620697021484,
+    "frames": 16
+  },
+  {
+    "id": "siames",
+    "sha256": "2dcd6eb36bfa93320f21a5894dcd236b81e45edfd28ecfaa45d2f34dcb16fdd6",
+    "transparent": 0.5150311787923177,
+    "frames": 16
+  },
+  {
+    "id": "marron",
+    "sha256": "57cee682f63a20dd081cc53ce1d48f1ba6ab7da35bacae93785ca57ae7877c44",
+    "transparent": 0.500982920328776,
+    "frames": 16
+  }
+]

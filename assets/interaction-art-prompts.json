@@ -1,0 +1,49 @@
+{
+  "tool": "image_gen.imagegen (built-in)",
+  "date": "2026-10-31",
+  "reference": "assets/acciones-naranja.png",
+  "variants": [
+    {
+      "id": "gris",
+      "identityReference": "assets/walk-gris.png",
+      "output": "assets/acciones-gris.png",
+      "prompt": "Use case: precise-object-edit. Create a production transparent sprite sheet by editing Image 1 (orange 4x4 sheet, EDIT TARGET); Image 2 (gray walking sheet) is coat/eyes identity REFERENCE ONLY. Change ONLY the fur pattern and eye color of ALL SIXTEEN complete cats to the silver-gray tabby in Image 2: charcoal stripes, pale muzzle/chest/white paws and tail tip, green eyes. Keep Image1's exact 16 poses, anatomy, paw placements, expression, scale, four columns four rows, cell positions and action timing. Row1 kneading alternating attached forepaws, row2 settling ending fully curled asleep, row3 cheek rubbing, row4 playful batting. Do not substitute walking poses from Image2. Preserve whole body, head, tail and limbs in EVERY frame. Full transparent alpha background including gaps, NO brown gradient, NO colored background, no painted checkerboard, no shadows, no text. Keep all sixteen cats distinct and fully within their cells with transparent gutters. Output landscape 1536x1024."
+    },
+    {
+      "id": "calico",
+      "identityReference": "assets/walk-calico.png",
+      "output": "assets/acciones-calico.png",
+      "prompt": "Use case: precise-object-edit. Create a production transparent sprite sheet by editing Image 1 (orange 4x4 sheet, EDIT TARGET); Image 2 (walking sheet) is coat/eyes identity REFERENCE ONLY. Change ONLY the fur pattern and eye color of ALL SIXTEEN complete cats to the calico coat from Image 2: mostly white fur with distinct orange and dark brown patches (NOT stripes), golden eyes, pink nose; preserve patch placement consistently across all frames. Keep Image1's exact 16 poses, anatomy, paw placements, expression, scale, four columns four rows, cell positions and action timing. Row1 kneading alternating attached forepaws, row2 settling ending fully curled asleep, row3 cheek rubbing, row4 playful batting. Do not substitute walking poses from Image2. Preserve whole body, head, tail and limbs in EVERY frame. Full transparent alpha background including gaps, NO brown gradient, NO colored background, no painted checkerboard, no shadows, no text. Keep all sixteen cats distinct and fully within their cells with transparent gutters. Output landscape 1536x1024."
+    },
+    {
+      "id": "negro",
+      "identityReference": "assets/walk-negro.png",
+      "output": "assets/acciones-negro.png",
+      "prompt": "Use case: precise-object-edit. Create a production transparent sprite sheet by editing Image 1 (orange 4x4 sheet, EDIT TARGET); Image 2 (walking sheet) is coat/eyes identity REFERENCE ONLY. Change ONLY the fur pattern and eye color of ALL SIXTEEN complete cats to the black cat from Image 2: dark charcoal fur over ENTIRE body including paws, chest, muzzle and tail tip (NO white patches), subtle darker tabby stripes and golden amber eyes. Keep Image1's exact 16 poses, anatomy, paw placements, expression, scale, four columns four rows, cell positions and action timing. Row1 kneading alternating attached forepaws, row2 settling ending fully curled asleep, row3 cheek rubbing, row4 playful batting. Do not substitute walking poses from Image2. Preserve whole body, head, tail and limbs in EVERY frame. Full transparent alpha background including gaps, NO brown gradient, NO colored background, no painted checkerboard, no shadows, no text. Keep all sixteen cats distinct and fully within their cells with transparent gutters. Output landscape 1536x1024."
+    },
+    {
+      "id": "blanco",
+      "identityReference": "assets/walk-blanco.png",
+      "output": "assets/acciones-blanco.png",
+      "prompt": "Use case: precise-object-edit. Create a production transparent sprite sheet by editing Image 1 (orange 4x4 sheet, EDIT TARGET); Image 2 (walking sheet) is coat/eyes identity REFERENCE ONLY. Change ONLY the fur pattern and eye color of ALL SIXTEEN complete cats to the white kitten from Image 2: warm white fur on ENTIRE body with faint cream shading, no tabby stripes, no patches, light blue eyes, pink ears/nose. Keep Image1's exact 16 poses, anatomy, paw placements, expression, scale, four columns four rows, cell positions and action timing. Row1 kneading alternating attached forepaws, row2 settling ending fully curled asleep, row3 cheek rubbing, row4 playful batting. Do not substitute walking poses from Image2. Preserve whole body, head, tail and limbs in EVERY frame. Full transparent alpha background including gaps, NO brown gradient, NO colored background, no painted checkerboard, no shadows, no text. Keep all sixteen cats distinct and fully within their cells with transparent gutters. Output landscape 1536x1024."
+    },
+    {
+      "id": "tuxedo",
+      "identityReference": "assets/walk-tuxedo.png",
+      "output": "assets/acciones-tuxedo.png",
+      "prompt": "Use case: precise-object-edit. Create a production transparent sprite sheet by editing Image 1 (orange 4x4 sheet, EDIT TARGET); Image 2 (walking sheet) is coat/eyes identity REFERENCE ONLY. Change ONLY the fur pattern and eye color of ALL SIXTEEN complete cats to the black-and-white tuxedo kitten from Image 2: black body and head, white muzzle/chest/belly/boots and white tail tip, green eyes, pink nose; no orange or gray stripes. Keep Image1's exact 16 poses, anatomy, paw placements, expression, scale, four columns four rows, cell positions and action timing. Row1 kneading alternating attached forepaws, row2 settling ending fully curled asleep, row3 cheek rubbing, row4 playful batting. Do not substitute walking poses from Image2. Preserve whole body, head, tail and limbs in EVERY frame. Full transparent alpha background including gaps, NO brown gradient, NO colored background, no painted checkerboard, no shadows, no text. Keep all sixteen cats distinct and fully within their cells with transparent gutters. Output landscape 1536x1024."
+    },
+    {
+      "id": "siames",
+      "identityReference": "assets/walk-siames.png",
+      "output": "assets/acciones-siames.png",
+      "prompt": "Use case: precise-object-edit. Create a production transparent sprite sheet by editing Image 1 (orange 4x4 sheet, EDIT TARGET); Image 2 (walking sheet) is coat/eyes identity REFERENCE ONLY. Change ONLY the fur pattern and eye color of ALL SIXTEEN complete cats to the Siamese kitten from Image 2: cream ivory torso, deep chocolate brown ears and facial mask, brown paws and full brown tail, bright blue eyes, brown nose; no white boots, no orange stripes. Keep Image1's exact 16 poses, anatomy, paw placements, expression, scale, four columns four rows, cell positions and action timing. Row1 kneading alternating attached forepaws, row2 settling ending fully curled asleep, row3 cheek rubbing, row4 playful batting. Do not substitute walking poses from Image2. Preserve whole body, head, tail and limbs in EVERY frame. Full transparent alpha background including gaps, NO brown gradient, NO colored background, no painted checkerboard, no shadows, no text. Keep all sixteen cats distinct and fully within their cells with transparent gutters. Output landscape 1536x1024."
+    },
+    {
+      "id": "marron",
+      "identityReference": "assets/walk-marron.png",
+      "output": "assets/acciones-marron.png",
+      "prompt": "Use case: precise-object-edit. Create a production transparent sprite sheet by editing Image 1 (orange 4x4 sheet, EDIT TARGET); Image 2 (walking sheet) is coat/eyes identity REFERENCE ONLY. Change ONLY the fur pattern and eye color of ALL SIXTEEN complete cats to the brown tabby kitten from Image 2: warm medium brown coat with dark chocolate stripes, cream muzzle/chest, cream white paws and tail tip, hazel yellow-green eyes, pink nose. Keep Image1's exact 16 poses, anatomy, paw placements, expression, scale, four columns four rows, cell positions and action timing. Row1 kneading alternating attached forepaws, row2 settling ending fully curled asleep, row3 cheek rubbing, row4 playful batting. Do not substitute walking poses from Image2. Preserve whole body, head, tail and limbs in EVERY frame. Full transparent alpha background including gaps, NO brown gradient, NO colored background, no painted checkerboard, no shadows, no text. Keep all sixteen cats distinct and fully within their cells with transparent gutters. Output landscape 1536x1024."
+    }
+  ]
+}

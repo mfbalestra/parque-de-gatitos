@@ -22,6 +22,13 @@ for(let seed=1;seed<=1000;seed++){
  low+=B.select(a,'park',['sleep','wander'])==='sleep';high+=B.select(b,'park',['sleep','wander'])==='sleep';
 }
 assert(low>high);
+{
+ const c={};B.init(c,7123);const counts={rub:0,cuddle:0,spar:0};
+ for(let i=0;i<14000;i++)counts[B.selectSocial(c,['rub','cuddle','spar'])]++;
+ assert(counts.rub>counts.cuddle*3&&counts.rub>counts.spar*3,'Rubbing is more common than paired sleep or play');
+ assert(counts.cuddle>500&&counts.spar>500,'Both rarer encounters remain possible');
+ for(let i=0;i<500;i++)assert.notEqual(B.selectSocial(c,['rub','cuddle']),'spar','Play cooldown excludes sparring');
+}
 for(const action of ['knead','settle','rub','cuddle','spar']){
  assert(sim.context.orangeDemo.choose(action));
  let saw=false;
@@ -98,6 +105,7 @@ for(const count of [1,4,8]){
  const settings={cats:count,fps:60,companionMinutes:30,stayMinutes:5};
  const s=makeSimulation(html,{storage:{'parque-gatitos.preferences.v1':JSON.stringify({version:1,settings})}}),world=s.world;
  assert.equal(world.cats.length,count);
+ for(const pair of [...world.pairs])world.cancelPair(pair);
  for(const c of world.cats){c.artIndex=0;c.st='sit';c.tm=0;c.cooldown=0;c.motion=null;c.z=0;}
  if(count>1){assert(world.reserve(world.cats[0],world.cats[1],'spar'));
   if(count===4)assert(!world.reserve(world.cats[2],world.cats[3],'spar'));

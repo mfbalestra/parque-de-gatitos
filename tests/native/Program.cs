@@ -7,6 +7,8 @@ SettingsContracts.Run(Check);
 WalkContracts.Run(Check);
 BehaviorContracts.Run(Check);
 AwakeContracts.Run(Check);
+InteractionContracts.Run(Check);
+SocialFrequencyContracts.Run(Check);
 foreach (double dt in new[] { .01, 1.0 / 30, 1.0 / 60 })
 foreach (int width in new[] { 800, 1920, 3840 })
 {
