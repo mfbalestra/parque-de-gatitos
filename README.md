@@ -2,7 +2,7 @@
 
 También hay una [prueba nativa para Windows con C# y WPF](desktop/README.md): gatos sobre el escritorio, modos de uno, cuatro y ocho, controles de pausa y ocultación, y mediciones reproducibles.
 
-Escena animada en pixel art: un parque con arcoíris, flores y mariposas donde muchos gatitos de distintos pelajes y contexturas pasean, se persiguen, juegan, ruedan, se lamen, duermen, se meten en una caja, trepan un gimnasio gatuno y se tiran por el tobogán.
+Parque ilustrado y animado: un paisaje con arcoíris, flores y mariposas donde gatitos de distintos pelajes y contexturas pasean, se persiguen, juegan, ruedan, se lamen, duermen, se meten en una caja, trepan un gimnasio gatuno y se tiran por el tobogán.
 
 Verla en línea: https://mfbalestra.github.io/parque-de-gatitos/
 
@@ -56,7 +56,7 @@ La caminata usa `walk-data.js` y ocho atlas `assets/walk-*.png`, derivados de la
 
 `park-cycle.js` contiene las reglas de duración, fases y preferencias; `web-controls.js` conecta esas reglas con el diálogo. Las decisiones de juego permanecen en la simulación. El origen y las limitaciones del arte se documentan en [desktop/WALK-ART.md](desktop/WALK-ART.md); las cifras de rendimiento de Windows no se atribuyen al navegador.
 
-El fondo y las láminas de gatos están en `assets`. Se usan imágenes locales sin dependencias ni servicios externos. Si una imagen falta o no carga, esa parte conserva el dibujo procedural original como respaldo. `park-details.js` dibuja las mantitas, el gimnasio, las mariposas y las sombras sin intervenir en las decisiones de la simulación. El origen del arte y los prompts están en `assets/ORIGEN.txt` y `assets/PROMPTS-VARIEDADES.txt`.
+El fondo y las láminas de gatos están en `assets`. Se usan imágenes locales sin dependencias ni servicios externos. Si una imagen falta o no carga, esa parte conserva el dibujo procedural original como respaldo. `park-details.js` dibuja las mantitas, el gimnasio, la caja, las mariposas, los ovillos, las flores, las nubes y los efectos sin intervenir en las decisiones de la simulación. `visual-style.js` comparte la familia de colores cálidos con Windows; las sombras son suaves y el fondo tiene textura fina para que se distingan los gatos. Las nubes se desvanecen antes de llegar a los árboles laterales. El origen del arte y los prompts están en `assets/ORIGEN.txt`, `assets/PROMPTS-VARIEDADES.txt` y [la descripción del fondo refinado](assets/SCENE-ART.md).
 
 ## Comprobar un cambio
 

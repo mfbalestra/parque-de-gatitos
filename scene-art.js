@@ -74,7 +74,8 @@ window.createParkArt=function(data){
     background(g,width,height){
       const entry=images.get('background');
       if(!entry||!entry.ready)return false;
-      g.drawImage(entry.image,0,0,width,height);return true;
+      g.save();g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+      g.drawImage(entry.image,0,0,width,height);g.restore();return true;
     },
     pose,
     draw(g,p,x,feet,direction,deform){

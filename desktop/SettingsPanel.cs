@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -31,7 +32,8 @@ internal sealed class SettingsPanel : Window
         FontFamily = SystemFonts.MessageFontFamily; FontSize = 14;
         Background = SystemColors.WindowBrush; Foreground = SystemColors.WindowTextBrush;
         var layout = new StackPanel { Margin = new Thickness(22) };
-        layout.Children.Add(new TextBlock { Text = "Gatitos", FontSize = 24, FontWeight = FontWeights.SemiBold });
+        var heading = new TextBlock { Text = "Gatitos", FontSize = 24, FontWeight = FontWeights.SemiBold };
+        layout.Children.Add(heading);
         activity.FontSize = 17; activity.FontWeight = FontWeights.SemiBold; activity.Margin = new Thickness(0, 10, 0, 4);
         AutomationProperties.SetAutomationId(activity, "ActivityStatus"); layout.Children.Add(activity);
         AutomationProperties.SetAutomationId(schedule, "ScheduleStatus"); layout.Children.Add(schedule);
@@ -98,6 +100,21 @@ internal sealed class SettingsPanel : Window
         var fixedFooter = new Border { Child = footer, Padding = new Thickness(22, 12, 22, 12),
             BorderThickness = new Thickness(0, 1, 0, 0), BorderBrush = SystemColors.ActiveBorderBrush };
         Grid.SetRow(fixedFooter, 1); frame.Children.Add(fixedFooter); Content = frame;
+        void ApplyColors()
+        {
+            bool highContrast = SystemParameters.HighContrast;
+            Background = highContrast ? SystemColors.WindowBrush : VisualStyle.Paper;
+            Foreground = highContrast ? SystemColors.WindowTextBrush : VisualStyle.Ink;
+            heading.Foreground = highContrast ? SystemColors.WindowTextBrush : VisualStyle.Accent;
+            fixedFooter.Background = highContrast ? SystemColors.WindowBrush : VisualStyle.Paper;
+            fixedFooter.BorderBrush = highContrast ? SystemColors.ActiveBorderBrush : VisualStyle.ControlEdge;
+        }
+        void ContrastChanged(object? sender, PropertyChangedEventArgs args)
+        {
+            if (args.PropertyName == nameof(SystemParameters.HighContrast)) ApplyColors();
+        }
+        ApplyColors(); SystemParameters.StaticPropertyChanged += ContrastChanged;
+        Closed += (_, _) => SystemParameters.StaticPropertyChanged -= ContrastChanged;
         refreshing = false; UpdateDirty();
     }
 

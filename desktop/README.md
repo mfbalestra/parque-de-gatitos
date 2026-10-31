@@ -1,6 +1,6 @@
 # Gatitos en Windows: prueba nativa
 
-Una aplicación C# con WPF muestra uno, cuatro u ocho gatos sobre el borde inferior del monitor principal. Caminan, se preparan para saltar, saltan con gravedad, aterrizan, se sientan, se acicalan y duermen. Periódicamente aparece el parque sobre el área de trabajo: los mismos gatos entran, recorren el césped y la estructura, descansan y regresan al escritorio. Usa las ilustraciones y los recortes del parque web. Esta integración nativa no traslada todavía todos los juegos ni las interacciones del navegador.
+Una aplicación C# con WPF muestra uno, cuatro u ocho gatos sobre el borde inferior del monitor principal. Caminan, se preparan para saltar, saltan con gravedad, aterrizan, se sientan, se acicalan y duermen. Periódicamente aparece el parque sobre el área de trabajo: los mismos gatos entran, recorren el césped y la estructura, descansan y regresan al escritorio. Usa las ilustraciones y la paleta del parque web, también en las mariposas, las sombras y el panel de controles. En alto contraste, el panel usa los colores de Windows. Esta integración nativa no traslada todavía todos los juegos ni las interacciones del navegador.
 
 El [parque web](../README.md) también incluye los ocho ciclos completos, controles de cantidad y FPS, preferencias y visitas programadas. En el navegador la compañía queda dentro de la pestaña; esta app mantiene la superposición sobre otros programas. Las preferencias y mediciones de ambas versiones son independientes.
 
@@ -57,7 +57,7 @@ dotnet build desktop/Gatitos.Windows.csproj -c Release --configfile desktop/NuGe
 .\desktop\bin\Release\net10.0-windows\Gatitos.Windows.exe --cats 8 --panel
 ```
 
-El archivo de NuGet deja vacías las fuentes porque no se usan paquetes externos: las bibliotecas provienen del SDK instalado. La distribución es dependiente del **.NET Desktop Runtime 10 x64**; no incluye un navegador ni lleva un runtime privado. Conservá el ejecutable, sus archivos acompañantes, `art-data.js` y `assets` en la misma carpeta.
+El archivo de NuGet deja vacías las fuentes porque no se usan paquetes externos: las bibliotecas provienen del SDK instalado. La distribución es dependiente del **.NET Desktop Runtime 10 x64**; no incluye un navegador ni lleva un runtime privado. Conservá el ejecutable, sus archivos acompañantes, los archivos de datos JavaScript y `assets` en la misma carpeta.
 
 ## Repetir las comprobaciones
 

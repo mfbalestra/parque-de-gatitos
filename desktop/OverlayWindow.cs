@@ -207,12 +207,11 @@ internal sealed class CatSurface : FrameworkElement
     private readonly SpriteCatalog catalog;
     private readonly ParkCycle cycle;
     private readonly ParkScene park;
-    private readonly RadialGradientBrush shadow = new(Color.FromArgb(45, 24, 30, 34), Colors.Transparent);
     public CatMotion[] Cats { get; set; } = Array.Empty<CatMotion>();
     public long Frames { get; private set; }
     public CatSurface(SpriteCatalog catalog, ParkCycle cycle, ParkScene park)
     {
-        this.catalog = catalog; this.cycle = cycle; this.park = park; shadow.Freeze();
+        this.catalog = catalog; this.cycle = cycle; this.park = park;
         RenderOptions.SetBitmapScalingMode(this, BitmapScalingMode.LowQuality);
     }
     protected override void OnRender(DrawingContext dc)
@@ -223,7 +222,7 @@ internal sealed class CatSurface : FrameworkElement
         {
             var sprite = catalog.Get(cat.Coat, cat.Pose);
             double feet = ActualHeight - 7 - cat.Depth;
-            dc.DrawEllipse(shadow, null, new Point(cat.X, feet), 32 - cat.Height / 8, 5);
+            dc.DrawEllipse(VisualStyle.Shadow, null, new Point(cat.X, feet), 32 - cat.Height / 8, 5);
             dc.PushTransform(new TranslateTransform(cat.X, feet - cat.Height));
             dc.PushTransform(new ScaleTransform(cat.Direction == sprite.Facing ? 1 : -1, cat.Squash));
             dc.PushTransform(new TranslateTransform(-sprite.Width * sprite.AnchorX, -sprite.Height * sprite.AnchorY));

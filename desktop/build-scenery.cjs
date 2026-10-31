@@ -11,6 +11,7 @@ const { chromium } = createRequire(path.join(path.resolve(moduleRoot), '_resolve
   try {
     const page = await browser.newPage({ viewport: { width: 1536, height: 864 } });
     await page.setContent('<canvas width="1536" height="864"></canvas>');
+    await page.addScriptTag({ content: fs.readFileSync(path.join(root, 'visual-style.js'), 'utf8') });
     await page.addScriptTag({ content: fs.readFileSync(path.join(root, 'park-details.js'), 'utf8') });
     const data = await page.evaluate(async src => {
       const image = new Image(); image.src = src; await image.decode();

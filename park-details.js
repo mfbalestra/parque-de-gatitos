@@ -2,6 +2,13 @@
 (() => {
   'use strict';
   const TAU = Math.PI * 2;
+  const style = window.PARK_STYLE || {};
+  const accents = style.toys || ['#c78083', '#8ab5bd', '#aaa2c1', '#d9b96a', '#b87b63'];
+  const legacyColours = ['#e8577c', '#4aa3e0', '#8a6ad8', '#f2c230', '#e24b4a'];
+  const accent = colour => accents[Math.max(0, legacyColours.indexOf(colour === '#f08a2c' ? '#e24b4a' : colour)) % accents.length];
+  const butterflyColours = style.butterflies || ['#c78083', '#aaa2c1', '#d9b96a', '#8ab5bd'];
+  const legacyButterflies = ['#e8577c', '#ffffff', '#f2c230', '#4aa3e0'];
+  const shadowRGB = (style.shadow || '#3d4934').slice(1).match(/../g).map(v => parseInt(v, 16)).join(',');
   const palette = {
     wood: '#b98551', edge: '#795b3c', light: '#edc991', rope: '#ddc79b',
     cream: '#f2dfb9', sage: '#9dac80', terra: '#c78065', lavender: '#afa1bd'
@@ -38,10 +45,10 @@
     g.save();
     g.translate(x, y); g.scale(width / 2, height / 2);
     const fade = g.createRadialGradient(0, 0, 0, 0, 0, 1);
-    fade.addColorStop(0, `rgba(45,61,34,${opacity})`);
-    fade.addColorStop(.38, `rgba(45,61,34,${opacity * .7})`);
-    fade.addColorStop(.72, `rgba(45,61,34,${opacity * .24})`);
-    fade.addColorStop(1, 'rgba(45,61,34,0)');
+    fade.addColorStop(0, `rgba(${shadowRGB},${opacity})`);
+    fade.addColorStop(.38, `rgba(${shadowRGB},${opacity * .7})`);
+    fade.addColorStop(.72, `rgba(${shadowRGB},${opacity * .24})`);
+    fade.addColorStop(1, `rgba(${shadowRGB},0)`);
     ellipse(g, 0, 0, 1, 1, fade);
     g.restore();
   }
@@ -244,7 +251,7 @@
       g.bezierCurveTo(2.25, -.33, 1.55, .05, 1.04, .2);
       g.bezierCurveTo(1.9, .53, 1.5, 1.37, .87, 1.18);
       g.bezierCurveTo(.33, 1.03, .15, .52, .08, -.15);
-      g.closePath(); g.fillStyle = f.c || palette.lavender; g.fill();
+      g.closePath(); g.fillStyle = butterflyColours[Math.max(0, legacyButterflies.indexOf(f.c))]; g.fill();
       g.strokeStyle = 'rgba(87,66,57,.65)'; g.lineWidth = .16; g.stroke();
       ellipse(g, 1.25, -.85, .34, .26, 'rgba(255,246,216,.85)');
       ellipse(g, .93, .65, .22, .18, 'rgba(104,74,66,.38)');
@@ -261,5 +268,79 @@
     g.restore();
   }
 
-  window.PARK_DETAILS = Object.freeze({ drawGround, drawGym, drawButterfly, drawBoxBack, drawBoxFront, shadow });
+  function drawCloud(g, c) {
+    // Fade within the clear sky, before reaching either foreground tree.
+    const opacity = Math.max(0, Math.min(1, (c.x - 77) / 12, (170 - c.x) / 12));
+    if (!opacity) return;
+    g.save(); g.globalAlpha *= opacity * .83; g.translate(c.x, c.y);
+    const shade = g.createLinearGradient(0, 1, 0, 11);
+    shade.addColorStop(0, '#fffdf3'); shade.addColorStop(1, '#d6eaf0');
+    g.beginPath(); g.moveTo(2, 10);
+    g.bezierCurveTo(-1, 6, 4, 4, 7, 5);
+    g.bezierCurveTo(7, -1, 17, -2, 18, 5);
+    g.bezierCurveTo(23, 2, 27, 6, 25, 9);
+    g.bezierCurveTo(28, 12, 7, 12, 2, 10);
+    g.fillStyle = shade; g.fill();
+    line(g, [[5, 10], [11, 10.6], [20, 10.2]], 'rgba(255,253,240,.6)', .28);
+    g.restore();
+  }
+
+  function drawFlower(g, f, t) {
+    const sway = Math.sin(t * 1.4 + f.p) * .25, x = f.x + sway, y = f.y - 1.3;
+    g.save(); g.lineCap = 'round';
+    line(g, [[f.x, f.y], [x, y]], '#658a49', .15);
+    ellipse(g, f.x + .32, f.y - .35, .35, .13, '#85a659');
+    const colour = f.c === '#ffffff' ? '#fff6dc' : accent(f.c);
+    for (let k = 0; k < 5; k++) {
+      const a = k * TAU / 5;
+      ellipse(g, x + Math.cos(a) * .39, y + Math.sin(a) * .32, .3, .24, colour);
+    }
+    ellipse(g, x, y, .18, .16, '#d7ab5b'); g.restore();
+  }
+
+  function drawYarn(g, o) {
+    shadow(g, o.x, o.y, 6, 2, .18);
+    g.save(); g.translate(o.x, o.y - 2.4); g.rotate(o.rot || 0);
+    const colour = accent(o.c);
+    const shade = g.createRadialGradient(-.7, -.8, .1, 0, 0, 2.5);
+    shade.addColorStop(0, '#f1d5b6'); shade.addColorStop(.3, colour); shade.addColorStop(1, '#7d6456');
+    ellipse(g, 0, 0, 2.3, 2.3, shade);
+    g.strokeStyle = style.outline || '#624f44'; g.lineWidth = .18; g.stroke();
+    g.save(); g.clip();
+    for (let i = -3; i <= 3; i++) {
+      g.beginPath(); g.moveTo(-2.6, i * .65 - .6);
+      g.bezierCurveTo(-.8, i * .65 + .8, .8, i * .65 + .9, 2.6, i * .65 - .4);
+      g.strokeStyle = 'rgba(255,239,209,.6)'; g.lineWidth = .16; g.stroke();
+    }
+    for (const x of [-.9, .1, 1]) {
+      g.beginPath(); g.moveTo(x, -2.5); g.quadraticCurveTo(x - 1, 0, x + .6, 2.5);
+      g.strokeStyle = 'rgba(92,66,52,.28)'; g.lineWidth = .15; g.stroke();
+    }
+    g.restore(); g.restore();
+  }
+
+  function drawHeart(g, x, y) {
+    g.save(); g.translate(x, y);
+    g.beginPath(); g.moveTo(0, .6);
+    g.bezierCurveTo(-2, -1.9, -4, 1.1, 0, 3.6);
+    g.bezierCurveTo(4, 1.1, 2, -1.9, 0, .6);
+    g.fillStyle = accents[0]; g.fill(); g.strokeStyle = '#835b54'; g.lineWidth = .18; g.stroke();
+    ellipse(g, -.9, .55, .35, .22, '#f3d5bd'); g.restore();
+  }
+
+  function drawSleep(g, x, y) {
+    g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
+    const points = [[x, y], [x + 2.2, y], [x, y + 2.5], [x + 2.2, y + 2.5]];
+    line(g, points, '#657257', .75); line(g, points, '#fff5d8', .42); g.restore();
+  }
+
+  function drawSpark(g, x, y) {
+    g.save(); g.translate(x, y); g.lineCap = 'round';
+    line(g, [[0, -.9], [0, .9]], '#fff1ba', .3);
+    line(g, [[-.9, 0], [.9, 0]], '#fff1ba', .3);
+    ellipse(g, 0, 0, .3, .3, '#e5bd70'); g.restore();
+  }
+
+  window.PARK_DETAILS = Object.freeze({ drawGround, drawGym, drawButterfly, drawBoxBack, drawBoxFront, shadow,
+    drawCloud, drawFlower, drawYarn, drawHeart, drawSleep, drawSpark });
 })();

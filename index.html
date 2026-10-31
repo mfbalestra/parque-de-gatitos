@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Parque de gatitos</title>
-<meta name="description" content="Escena animada en pixel art: gatitos que juegan, ruedan, trepan y se tiran por el tobogán en un parque con arcoíris.">
+<meta name="description" content="Parque ilustrado y animado: gatitos que juegan, descansan, trepan y se tiran por el tobogán bajo un arcoíris.">
 <style>
 html,body{margin:0;height:100%;overflow:hidden}
 html{scrollbar-color:#4f9a38 #6fbb4d}
@@ -12,8 +12,8 @@ html{scrollbar-color:#4f9a38 #6fbb4d}
 :focus-visible{outline:2px solid #378add;outline-offset:2px}
 main{display:contents}
 .sr-only{text-wrap:balance;position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
-body{background:linear-gradient(#7cc6f0 50%,#6fbb4d 50%);display:flex;align-items:center;justify-content:center}
-canvas{display:block;width:min(100vw,calc(100vh * 16 / 9));height:auto;aspect-ratio:16/9;image-rendering:pixelated;cursor:pointer}
+body{background:linear-gradient(#8bc9dd 50%,#82b950 50%);display:flex;align-items:center;justify-content:center}
+canvas{display:block;width:min(100vw,calc(100vh * 16 / 9));height:auto;aspect-ratio:16/9;image-rendering:auto;cursor:pointer}
 canvas:focus-visible{outline:3px solid #fff;outline-offset:-6px;box-shadow:0 0 0 3px #183326}
 </style>
 <link rel="stylesheet" href="web-controls.css">
@@ -21,7 +21,7 @@ canvas:focus-visible{outline:3px solid #fff;outline-offset:-6px;box-shadow:0 0 0
 <body>
 <main>
 <h1 class="sr-only">Parque de gatitos</h1>
-<canvas id="pk" width="1536" height="864" role="img" tabindex="0" aria-label="Parque animado en pixel art con gatitos que juegan, ruedan, trepan y se tiran por el tobogán" aria-describedby="park-help park-status"></canvas>
+<canvas id="pk" width="1536" height="864" role="img" tabindex="0" aria-label="Parque ilustrado y animado con gatitos que juegan, ruedan, trepan y se tiran por el tobogán" aria-describedby="park-help park-status"></canvas>
 <p id="park-help" class="sr-only">Tocá o hacé clic para tirar un ovillo. Con el teclado, usá las flechas para apuntar y Enter para tirarlo. Espacio pausa o reanuda la animación.</p>
 <p id="park-status" class="sr-only" role="status" aria-live="polite"></p>
 <div class="park-toolbar" role="group" aria-label="Controles de la escena">
@@ -54,6 +54,7 @@ canvas:focus-visible{outline:3px solid #fff;outline-offset:-6px;box-shadow:0 0 0
 <script src="walk-data.js"></script>
 <script src="interaction-art-data.js"></script>
 <script src="scene-art.js"></script>
+<script src="visual-style.js"></script>
 <script src="park-details.js"></script>
 <script src="behavior-profile.js"></script>
 <script src="cat-behavior.js"></script>
@@ -377,7 +378,7 @@ if(c.onS&&m){
 }else shadow(x,c.y-support,Math.max(7,w*.75-altitude*.14),3,.2/(1+altitude*.09));
 if(p)art.draw(g,p,x,c.y-c.z,d,c.deform)
 else g.drawImage(s,Math.round(c.x-w/2),Math.floor(c.y-s.height-c.z))}
-function drawBall(o){shadow(o.x,o.y,6,2,.18);disc(g,Math.round(o.x),Math.round(o.y)-3,2,o.c);
+function drawBall(o){if(window.PARK_DETAILS?.drawYarn){window.PARK_DETAILS.drawYarn(g,o);return}shadow(o.x,o.y,6,2,.18);disc(g,Math.round(o.x),Math.round(o.y)-3,2,o.c);
 const a=o.rot;px(g,o.x+Math.cos(a)*1.4,o.y-3+Math.sin(a)*1.4,'#ffffff');px(g,o.x-Math.cos(a)*1.4,o.y-3-Math.sin(a)*1.4,'rgba(0,0,0,0.25)')}
 function drawFly(f){if(window.PARK_DETAILS){window.PARK_DETAILS.drawButterfly(g,f,t);return}const open=Math.floor(f.t*12)%2;const x=Math.round(f.x),y=Math.round(f.y);g.fillStyle=f.c;
 if(open){g.fillRect(x-2,y-1,2,2);g.fillRect(x+1,y-1,2,2);g.fillRect(x-1,y+1,1,1);g.fillRect(x+1,y+1,1,1)}else{g.fillRect(x-1,y-2,1,2);g.fillRect(x+1,y-2,1,2)}
@@ -397,14 +398,14 @@ if(opacity===0){cats.slice().sort((a,b)=>a.y-b.y).forEach(drawCat);return;}
 g.save();g.globalAlpha=opacity;
 const illustrated=art&&art.background(g,W,H);if(!illustrated)g.drawImage(bg,0,0);
 if(!illustrated)for(let k=0;k<8;k++){const a=k*Math.PI/4+t*0.4,on=(Math.floor(t*2)+k)%2;if(on){px(g,214+Math.cos(a)*12,22+Math.sin(a)*12,'#ffd84a');px(g,214+Math.cos(a)*13.5,22+Math.sin(a)*13.5,'#ffe98a')}}
-clouds.forEach(c=>g.drawImage(cloud,Math.round(c.x),c.y));
-flowers.forEach(f=>{const sw=Math.round(Math.sin(t*2+f.p)*0.7);px(g,f.x,f.y,'#3f8a30');px(g,f.x+sw*0.5,f.y-1,'#3f8a30');const bx=f.x+sw,by=f.y-3;g.fillStyle=f.c;g.fillRect(bx-1,by,3,1);g.fillRect(bx,by-1,1,3);px(g,bx,by,'#ffe98a')});
+clouds.forEach(c=>window.PARK_DETAILS?.drawCloud?window.PARK_DETAILS.drawCloud(g,c):g.drawImage(cloud,Math.round(c.x),c.y));
+flowers.forEach((f,i)=>{if(window.PARK_DETAILS?.drawFlower){if(i%2===0)window.PARK_DETAILS.drawFlower(g,f,t);return}const sw=Math.round(Math.sin(t*2+f.p)*0.7);px(g,f.x,f.y,'#3f8a30');px(g,f.x+sw*0.5,f.y-1,'#3f8a30');const bx=f.x+sw,by=f.y-3;g.fillStyle=f.c;g.fillRect(bx-1,by,3,1);g.fillRect(bx,by-1,1,3);px(g,bx,by,'#ffe98a')});
 if(window.PARK_DETAILS)window.PARK_DETAILS.drawGround(g,t);
 [...(opacity===1?cats:[]),...balls,gymE,box].sort((a,b)=>a.y-b.y).forEach(o=>o.kind==='cat'?drawCat(o):o.kind==='ball'?drawBall(o):o.kind==='gym'?drawGym():drawBox(o));
-sparks.forEach(s=>{const y=s.y-s.t*6;g.fillStyle='#ffe98a';g.fillRect(Math.round(s.x),Math.round(y)-1,1,3);g.fillRect(Math.round(s.x)-1,Math.round(y),3,1)});
+sparks.forEach(s=>{const y=s.y-s.t*6;if(window.PARK_DETAILS?.drawSpark){window.PARK_DETAILS.drawSpark(g,s.x,y);return}g.fillStyle='#ffe98a';g.fillRect(Math.round(s.x),Math.round(y)-1,1,3);g.fillRect(Math.round(s.x)-1,Math.round(y),3,1)});
 flies.forEach(drawFly);
-hearts.forEach(h=>{const y=h.y-h.t*12;if(h.t<1.2||Math.floor(h.t*10)%2)pat(HEART,h.x-2,y,'#e8577c',1)});
-zs.forEach(z=>pat(ZED,z.x+Math.sin(z.t*3)*2,z.y-z.t*8,'#ffffff',1));
+hearts.forEach(h=>{const y=h.y-h.t*12;if(h.t<1.2||Math.floor(h.t*10)%2){if(window.PARK_DETAILS?.drawHeart)window.PARK_DETAILS.drawHeart(g,h.x,y);else pat(HEART,h.x-2,y,'#e8577c',1)}});
+zs.forEach(z=>{const x=z.x+Math.sin(z.t*3)*2,y=z.y-z.t*8;if(window.PARK_DETAILS?.drawSleep)window.PARK_DETAILS.drawSleep(g,x,y);else pat(ZED,x,y,'#ffffff',1)});
 if(aim.visible){g.strokeStyle='#183326';g.lineWidth=1.5;g.strokeRect(aim.x-3,aim.y-3,6,6);g.strokeStyle='#ffffff';g.lineWidth=.5;g.strokeRect(aim.x-3,aim.y-3,6,6)}
 g.restore();if(opacity<1)cats.slice().sort((a,b)=>a.y-b.y).forEach(drawCat);}
 function parkStep(dt){clouds.forEach(c=>{c.x+=c.v*dt;if(c.x>W+4)c.x=-30});
