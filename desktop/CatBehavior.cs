@@ -19,7 +19,7 @@ internal sealed class CatBehavior
         public bool Exiting;
         public int GymStep;
         public int Mat = -1;
-        public bool KneadReady;
+        public bool RestReserved, RestReady, GymExit;
         public State(int seed) { Random = new Random(seed); Sociability = Random.NextDouble(); }
     }
     private readonly JsonDocument profile;
@@ -32,6 +32,10 @@ internal sealed class CatBehavior
     private static readonly (double x, double y)[] Mats = { (27, 120), (96, 137), (211, 132) };
     internal (string action, double remaining, double cooldown, int partner) Inspect(int index) =>
         (states[index].Action, states[index].Remaining, states[index].Cooldown, states[index].Partner);
+    internal (bool gym, int step, bool exit, bool restReady) InspectRoute(int index) =>
+        (states[index].Gym, states[index].GymStep, states[index].GymExit, states[index].RestReady);
+    internal (bool reserved, double x, double depth) InspectRest(int index) =>
+        (states[index].RestReserved, states[index].X, states[index].Depth);
     public CatBehavior(int? seed = null)
     {
         this.seed = seed;
@@ -58,7 +62,7 @@ internal sealed class CatBehavior
         {
             if (state.Partner >= 0 && state.Action == "spar") state.Cooldown = Data.GetProperty("playCooldown").GetDouble();
             if (state.Action != "") state.Previous = state.Action;
-            state.Partner = -1; state.Remaining = 0; state.Action = ""; state.Gym = false; state.Mat = -1;
+            state.Partner = -1; state.Remaining = 0; state.Action = ""; state.Gym = false; state.Mat = -1; state.RestReserved = state.RestReady = state.GymExit = false;
         }
     }
     public void Demo(CatMotion[] current, string action)
@@ -72,13 +76,57 @@ internal sealed class CatBehavior
         }
         else Start(0, action);
     }
+    internal void DemoAt(CatMotion[] current, int index, string action)
+    {
+        Ensure(current);
+        Start(index, action);
+    }
     private void Start(int i, string action)
     {
         var s = states[i];
+        bool retainRest = s.RestReserved && ((s.Action == "knead" && action == "settle") || (s.Action == "settle" && action == "sleep"));
         s.Previous = s.Action; s.Action = action; s.Age = 0;
-        if (action == "knead") { s.Mat = -1; s.KneadReady = false; }
+        if (!retainRest) s.RestReserved = s.RestReady = false;
+        if (action == "knead") s.Mat = -1;
         else if (action != "settle" && action != "sleep") s.Mat = -1;
         s.Remaining = Duration(action, s.Random);
+    }
+    private static bool IsRest(string action) => action is "sleep" or "sit" or "groom" or "settle" or "knead";
+    private bool FindRest(int i, double width, double height, bool park, bool matOnly = false)
+    {
+        var s = states[i]; var cat = cats[i];
+        double clearanceX = Data.GetProperty("clearanceX").GetDouble() * 4;
+        double clearanceY = Data.GetProperty("clearanceY").GetDouble() * 4;
+        bool Free(double x, double depth)
+        {
+            if (x < 70 || x > Math.Max(70, width - 70) || depth < 0 || depth > (park ? height * .2 : 0)) return false;
+            if (park && Data.GetProperty("restAvoid").EnumerateArray().Any(p =>
+                Math.Abs(x - p.GetProperty("x").GetDouble() / 256 * width) < p.GetProperty("rx").GetDouble() / 256 * width &&
+                Math.Abs(depth - (height - 7 - p.GetProperty("y").GetDouble() / 144 * height)) < p.GetProperty("ry").GetDouble() / 144 * height)) return false;
+            return !Enumerable.Range(0, cats.Length).Any(j => j != i &&
+                ((Math.Abs(x - cats[j].X) < clearanceX && Math.Abs(depth - cats[j].Depth) < clearanceY) ||
+                 (states[j].RestReserved && Math.Abs(x - states[j].X) < clearanceX && Math.Abs(depth - states[j].Depth) < clearanceY) ||
+                 (states[j].Partner >= 0 && Math.Abs(x - states[j].X) < clearanceX && Math.Abs(depth - states[j].Depth) < clearanceY)));
+        }
+        var candidates = new System.Collections.Generic.List<(double x, double depth, int mat)>();
+        if (matOnly)
+            candidates.AddRange(Mats.Select((m, n) => (m.x / 256 * width, Math.Max(0, height - 7 - m.y / 144 * height), n)));
+        else
+        {
+            candidates.Add((cat.X, cat.Depth, -1));
+            for (int n = 0; n < 24; n++)
+                candidates.Add((Math.Clamp(cat.X + (s.Random.NextDouble() * 2 - 1) * clearanceX * 3, 70, Math.Max(70, width - 70)),
+                    park ? Math.Clamp(cat.Depth + (s.Random.NextDouble() * 2 - 1) * clearanceY * 3, 0, height * .2) : 0, -1));
+            for (double x = 70; x <= Math.Max(70, width - 70); x += clearanceX / 2)
+                for (double d = 0; d <= (park ? height * .2 : 0); d += clearanceY / 2)
+                    candidates.Add((x, d, -1));
+        }
+        var found = candidates.Where(p => Free(p.x, p.depth))
+            .OrderBy(p => Math.Pow(p.x - cat.X, 2) + Math.Pow(p.depth - cat.Depth, 2)).Take(1).ToArray();
+        if (found.Length == 0) return false;
+        s.X = found[0].x; s.Depth = found[0].depth; s.Mat = found[0].mat;
+        s.RestReserved = true; s.RestReady = false;
+        return true;
     }
     private void StartPair(int i, int j, string action)
     {
@@ -169,48 +217,45 @@ internal sealed class CatBehavior
                 else if (s.Action == "settle") Start(i, "sleep");
                 else Choose(i, width, height, park);
             }
-            if (s.Action == "knead" && !s.KneadReady)
+            if (IsRest(s.Action) && !s.RestReady)
             {
-                if (!park) s.KneadReady = true;
-                else
+                if (!s.RestReserved && !FindRest(i, width, height, park, s.Action == "knead" && park))
                 {
-                    if (s.Mat < 0)
-                    {
-                        s.Mat = Enumerable.Range(0, Mats.Length)
-                            .Where(m => Mats[m].x / 256 * width >= 70 && Mats[m].x / 256 * width <= Math.Max(70, width - 70) &&
-                                height - 7 - Mats[m].y / 144 * height >= 0 &&
-                                !states.Where((other, j) => j != i).Any(other => other.Mat == m) &&
-                                !cats.Where((other, j) => j != i).Any(other =>
-                                    Math.Abs(other.X - Mats[m].x / 256 * width) < 80 &&
-                                    Math.Abs(other.Depth - (height - 7 - Mats[m].y / 144 * height)) < 60))
-                            .OrderBy(m => Math.Pow(cat.X - Mats[m].x / 256 * width, 2) +
-                                Math.Pow(cat.Depth - (height - 7 - Mats[m].y / 144 * height), 2))
-                            .DefaultIfEmpty(-1).First();
-                    }
-                    if (s.Mat < 0) { s.Remaining = 0; continue; }
-                    double matX = Mats[s.Mat].x / 256 * width;
-                    double matDepth = Math.Max(0, height - 7 - Mats[s.Mat].y / 144 * height);
-                    if (!cat.MoveTo(matX, matDepth, dt, width, speed: park ? 90 : 32)) continue;
-                    s.KneadReady = true;
+                    if (s.Action != "knead" || !park) continue;
+                    Start(i, "sit");
+                    if (!FindRest(i, width, height, park)) continue;
                 }
+                if (!cat.MoveTo(s.X, s.Depth, dt, width, speed: park ? 90 : 32)) continue;
+                s.RestReady = true;
             }
             s.Age += dt; s.Remaining -= dt;
             if (s.Gym) s.Remaining = Math.Max(s.Remaining, 1);
             switch (s.Action)
             {
                 case "wander":
+                    if (s.GymExit && !s.RestReserved && !FindRest(i, width, height, park)) { s.Remaining = 1; break; }
                     bool blocked = states.Where((other, j) => j != i && other.Partner >= 0)
                         .Any(other => Math.Abs(cat.X - other.X) < 115 && Math.Abs(cat.Depth - other.Depth) < 70 &&
                             Math.Abs(s.X - other.X) < Math.Abs(cat.X - other.X));
-                    if (!blocked && cat.MoveTo(s.X, s.Depth, dt, width, s.Gym && s.GymStep > 0, park ? 90 : 32))
+                    bool sliding = s.Gym && s.GymStep == Gym.Length - 1;
+                    bool arrived = !blocked && cat.MoveTo(s.X, s.Depth, dt, width, s.Gym && s.GymStep > 0 && !sliding, park ? 90 : 32);
+                    if (sliding) cat.SetPose("sit");
+                    if (arrived)
                     {
                         if (s.Gym && ++s.GymStep < Gym.Length)
                         {
                             s.X = Gym[s.GymStep].x / 256 * width;
                             s.Depth = height - 7 - Gym[s.GymStep].y / 144 * height;
                         }
-                        else { s.Gym = false; s.Remaining = 0; }
+                        else if (s.Gym)
+                        {
+                            s.Gym = false; s.GymExit = true;
+                            s.RestReserved = false;
+                            if (!FindRest(i, width, height, park)) { s.Remaining = 1; }
+                        }
+                        else { s.GymExit = false; s.RestReserved = false; s.Remaining = 0; }
                     }
+                    if (s.GymExit) s.Remaining = Math.Max(s.Remaining, 1);
                     s.Energy = Math.Max(0, s.Energy - dt * .004); break;
                 case "sleep": cat.Rest(s.Age, 1); s.Energy = Math.Min(1, s.Energy + dt * .005); break;
                 case "sit": cat.Rest(s.Age, 0); s.Energy = Math.Min(1, s.Energy + dt * .002); break;

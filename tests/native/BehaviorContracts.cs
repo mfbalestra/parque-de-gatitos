@@ -6,6 +6,116 @@ internal static class BehaviorContracts
 {
     public static void Run(Action<bool, string> check)
     {
+        foreach (bool park in new[] { false, true })
+        foreach (int count in new[] { 1, 4, 8 })
+        foreach (int seed in new[] { 2, 7, 19 })
+        {
+            var group = Enumerable.Range(0, count).Select(i => new CatMotion(i, count, 1920, 0)).ToArray();
+            double landingX = 237.0 / 256 * 1920, landingDepth = park ? 1032 - 7 - 118.0 / 144 * 1032 : 0;
+            foreach (var cat in group) while (!cat.MoveTo(landingX, landingDepth, .5, 1920)) { }
+            var behavior = new CatBehavior(seed);
+            for (int i = 0; i < count; i++) behavior.DemoAt(group, i, "sleep");
+            var durations = Enumerable.Range(0, count).Select(i => behavior.Inspect(i).remaining).ToArray();
+            var arrived = new bool[count];
+            for (int frame = 0; frame < 2000 && arrived.Any(x => !x); frame++)
+            {
+                behavior.Advance(.1, group, 1920, 1032, park);
+                for (int i = 0; i < count; i++)
+                {
+                    if (!behavior.InspectRoute(i).restReady)
+                        check(behavior.Inspect(i).remaining == durations[i], "A waiting or approaching rest keeps its full duration.");
+                    else arrived[i] = true;
+                    for (int j = i + 1; j < count; j++)
+                    {
+                        var a = behavior.InspectRest(i); var b = behavior.InspectRest(j);
+                        if (a.reserved && b.reserved)
+                            check(Math.Abs(a.x - b.x) >= 104 || Math.Abs(a.depth - b.depth) >= 56,
+                                "Concurrent durable rests must reserve separate footprints.");
+                        if (behavior.InspectRoute(i).restReady && behavior.InspectRoute(j).restReady)
+                            check(Math.Abs(group[i].X - group[j].X) >= 104 || Math.Abs(group[i].Depth - group[j].Depth) >= 56,
+                                "Resting cats must not remain overlapped.");
+                    }
+                }
+            }
+            check(arrived.All(x => x), "Every cat in the clustered fixture must reach its rest.");
+        }
+        var trio = Enumerable.Range(0, 3).Select(i => new CatMotion(i, 3, 1920, 0)).ToArray();
+        double[] trioX = { 700, 1000, 850 };
+        for (int i = 0; i < trio.Length; i++) while (!trio[i].MoveTo(trioX[i], 0, .5, 1920)) { }
+        var trioBehavior = new CatBehavior(5); trioBehavior.Demo(trio, "cuddle");
+        trioBehavior.DemoAt(trio, 2, "sleep");
+        trioBehavior.Advance(.1, trio, 1920, 1032, false);
+        var third = trioBehavior.InspectRest(2);
+        check(third.reserved, "A third cat must find a rest outside the pair.");
+        for (int i = 0; i < 2; i++)
+        {
+            var partner = trioBehavior.InspectRest(i);
+            check(Math.Abs(third.x - partner.x) >= 104 || Math.Abs(third.depth - partner.depth) >= 56,
+                "A pair's reserved footprints must remain free of a third resting cat.");
+        }
+        var fullMats = Enumerable.Range(0, 4).Select(i => new CatMotion(i, 4, 1920, 0)).ToArray();
+        var positions = new[] { (237.0, 118.0), (27.0, 120.0), (96.0, 137.0), (211.0, 132.0) };
+        for (int i = 0; i < fullMats.Length; i++)
+            while (!fullMats[i].MoveTo(positions[i].Item1 / 256 * 1920, 1032 - 7 - positions[i].Item2 / 144 * 1032, .5, 1920)) { }
+        var fullMatBehavior = new CatBehavior(3);
+        fullMatBehavior.DemoAt(fullMats, 0, "knead");
+        for (int i = 1; i < fullMats.Length; i++) fullMatBehavior.DemoAt(fullMats, i, "sleep");
+        for (int frame = 0; frame < 500 && !fullMatBehavior.InspectRoute(0).restReady; frame++)
+        {
+            fullMatBehavior.Advance(.1, fullMats, 1920, 1032, true);
+            check(fullMatBehavior.Inspect(0).action == "sit" && !fullMats[0].Pose.StartsWith("knead"),
+                "With all mats occupied, the cat must find a sitting place instead of kneading off a mat.");
+        }
+        check(fullMatBehavior.InspectRoute(0).restReady &&
+            (Math.Abs(fullMats[0].X - 237.0 / 256 * 1920) >= 20.0 / 256 * 1920 ||
+             Math.Abs(fullMats[0].Depth - (1032 - 7 - 118.0 / 144 * 1032)) >= 13.0 / 144 * 1032),
+            "With all mats occupied, the cat must leave the slide landing before sitting.");
+        var cluster = Enumerable.Range(0, 4).Select(i => new CatMotion(i, 4, 1920, 0)).ToArray();
+        foreach (var cat in cluster) while (!cat.MoveTo(1000, 80, .5, 1920)) { }
+        var clustered = new CatBehavior(8); clustered.Demo(cluster, "sleep");
+        double restDuration = clustered.Inspect(0).remaining;
+        clustered.Advance(.1, cluster, 1920, 1032, true);
+        check(cluster[0].Pose.StartsWith("walk") && clustered.Inspect(0).remaining == restDuration,
+            "A cat in a landing cluster must walk to a free rest destination before its timer starts.");
+        for (int i = 0; i < cluster.Length; i++)
+        for (int j = i + 1; j < cluster.Length; j++)
+        {
+            var a = clustered.InspectRest(i); var b = clustered.InspectRest(j);
+            if (a.reserved && b.reserved)
+                check(Math.Abs(a.x - b.x) >= 104 || Math.Abs(a.depth - b.depth) >= 56,
+                    "Simultaneous rest destinations must reserve separate footprints.");
+        }
+        for (int frame = 0; frame < 500 && !clustered.InspectRoute(0).restReady; frame++)
+        {
+            check(clustered.Inspect(0).remaining == restDuration, "Approach must not shorten rest.");
+            clustered.Advance(.1, cluster, 1920, 1032, true);
+        }
+        check(clustered.InspectRoute(0).restReady && cluster.Skip(1).All(other =>
+            Math.Abs(cluster[0].X - other.X) >= 104 || Math.Abs(cluster[0].Depth - other.Depth) >= 56),
+            "A resting cat must reach a destination clear of the other cats.");
+        bool sawSlide = false, sawExit = false, sawClear = false;
+        for (int seed = 1; seed <= 8 && !sawClear; seed++)
+        {
+            var gymCat = new[] { new CatMotion(0, 1, 1920, 0) };
+            var gymBehavior = new CatBehavior(seed);
+            for (int frame = 0; frame < 30000 && !sawClear; frame++)
+            {
+                gymBehavior.Advance(.1, gymCat, 1920, 1032, true);
+                var route = gymBehavior.InspectRoute(0);
+                if (route.gym && route.step == 6 && gymCat[0].X > 1505)
+                {
+                    sawSlide = true;
+                    check(gymCat[0].Height == 0 && gymCat[0].Pose == "sit", "The slide must support a seated cat without a hop.");
+                }
+                if (route.exit)
+                {
+                    sawExit = true;
+                    check(gymBehavior.Inspect(0).action == "wander", "A cat must walk clear of the gym exit before resting.");
+                }
+                if (sawExit && !route.exit && !route.gym) sawClear = true;
+            }
+        }
+        check(sawSlide && sawExit && sawClear, "A seeded cat must traverse the slide and walk clear of its exit.");
         foreach (int width in new[] { 320, 800, 1920 })
         {
             var edgeCats = new[] { new CatMotion(0, 2, width, 0), new CatMotion(1, 2, width, 0) };

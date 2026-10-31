@@ -30,6 +30,8 @@ Cada gato elige su próxima actividad con probabilidades que dependen de su ener
 
 Las siestas duran de uno a tres minutos; observar sentado, de 20 a 60 segundos; el aseo, de 15 a 30 segundos. Los paseos buscan un destino cercano. Después de una pelea de juego, ambos descansan sentados al menos 30 segundos. Las visitas al parque y las acciones del usuario pueden cambiar la actividad; las invitaciones autónomas respetan a los gatos que están durmiendo o completando un descanso.
 
+Antes de un descanso individual, cada gato reserva un espacio separado de los demás y camina hasta allí. El tiempo de descanso empieza al llegar. Las zonas de paso, la rampa y su salida quedan fuera de los lugares de descanso; los encuentros intencionales de pareja conservan su contacto. Puede haber cruces breves durante el desplazamiento: la reserva evita la superposición prolongada al quedarse quietos. Si las mantas están ocupadas, busca un lugar para sentarse. «Dejarlos elegir» respeta a quien todavía recorre la estructura; al volver a la compañía también termina la bajada por la rampa antes de salir.
+
 El ritmo se aplica a los ocho pelajes. Las nuevas poses de amasar, acomodarse, frotarse, dormir juntos y jugar con las patas están limitadas al naranja mientras se evalúa el piloto. El amasado en el parque busca una manta libre; durante la compañía puede hacerlo donde está. Los encuentros requieren dos naranjas disponibles, de modo que no aparecen entre los otros pelajes todavía.
 
 Para inspeccionarlos, abrí `index.html?orange-preview=1` desde el servidor local: crea cuatro naranjas independientes y no guarda preferencias. La muestra local en `.local/disenos/ritmo-convivencia/index.html` permite pedir cada interacción y luego «Dejarlos elegir». Pedir una demostración es un estímulo explícito; no representa la frecuencia autónoma de esa conducta. La aceptación visual del naranja sigue pendiente antes de extender estos dibujos a los demás pelajes.
@@ -64,6 +66,7 @@ node tests/walk-web.cjs
 node tests/web-controls.cjs
 node tests/behavior.cjs
 node tests/orange-art.cjs
+node tests/spatial.cjs
 ```
 
 La primera prueba verifica las actividades, las coordenadas del puntero, el límite de ovillos y el teclado. La segunda comprueba los cinco disparadores de salto, la continuidad, la gravedad, las fases, el aterrizaje y el apoyo estable al rascar, a distintas frecuencias de actualización y durante recorridos prolongados. La tercera comprueba los ocho pelajes, los recortes, la transparencia declarada por los PNG, el apoyo, la inversión de dirección y el respaldo ante recursos inválidos.

@@ -174,7 +174,47 @@ const c={kind:'cat',artIndex:orangePreview?0:cats.length,x,y,z:0,vz:0,dir:rnd()<
 function newBall(x,y){return {kind:'ball',x,y,vx:0,vy:0,rot:0,c:pick(['#e8577c','#4aa3e0','#8a6ad8','#f2c230','#e24b4a'])}}
 const pairs=[];
 const mats=[{x:27,y:120},{x:96,y:137},{x:211,y:132}];
-function cancelPair(pair){if(!pair||!pairs.includes(pair))return;pairs.splice(pairs.indexOf(pair),1);for(const c of pair.cats){c.pair=null;c.tgt=null;c.fk=null;c.st='sit';c.tm=behavior.duration(c,'sit');c.recent='social';c.socialCooldown=profile.socialCooldown;if(pair.action==='spar'){c.cooldown=profile.playCooldown;c.tm=Math.max(c.tm,c.cooldown);c.energy=Math.max(0,c.energy-.25);}}}
+const resting=new Set(['sit','sleep','groom','knead','settle']);
+const crowded=(x,y,p)=>Math.hypot((x-p.x)/profile.clearanceX,(y-p.y)/profile.clearanceY)<1;
+function trafficSpace(x,y){return cycle?.phase!=='companion'&&profile.restAvoid.some(p=>Math.hypot((x-p.x)/p.rx,(y-p.y)/p.ry)<1);}
+function freeRest(c,x,y,arrival=false){
+ if(x<14||x>W-14||trafficSpace(x,y))return false;
+ return !cats.some(o=>o!==c&&((!o.onS&&!o.z&&!(o.st==='box'&&o.at)&&(!arrival||(!o.restTravel&&resting.has(o.st)))&&crowded(x,y,o))||
+  (o.restSpot&&crowded(x,y,o.restSpot))||(o.st==='kneadApproach'&&crowded(x,y,{x:o.tx,y:o.ty}))||
+  (o.pair&&crowded(x,y,{x:o===o.pair.cats[0]?o.pair.left:o.pair.right,y:o.pair.y}))));
+}
+function clearRestPath(c,p){
+ if(cycle?.phase==='companion')return true;
+ return !cats.some(o=>{
+  if(o===c||!o.pair)return false;
+  const sx=(c.x-o.x)/22,sy=(c.y-o.y)/12,dx=(p.x-c.x)/22,dy=(p.y-c.y)/12;
+  const dot=sx*dx+sy*dy,len=dx*dx+dy*dy;
+  if(sx*sx+sy*sy<1&&dot>=0)return false;
+  const t=len?Math.max(0,Math.min(1,-dot/len)):0;
+  return Math.hypot(sx+t*dx,sy+t*dy)<1;
+ });
+}
+function reserveRest(c){
+ const candidates=[];const companion=cycle?.phase==='companion';
+ if(!companion&&freeRest(c,c.x,c.y)){c.restSpot={x:c.x,y:c.y};c.restTravel=false;return true;}
+ if(companion){for(let x=14;x<=W-14;x+=28)candidates.push({x,y:141});}
+ else{
+  for(let i=0;i<40;i++)candidates.push({x:14+behavior.random(c)*(W-28),y:YMIN+behavior.random(c)*(YMAX-YMIN)});
+  for(let y=YMIN;y<=YMAX;y+=7)for(let x=14;x<=W-14;x+=8)candidates.push({x,y});
+ }
+ const spot=candidates.filter(p=>freeRest(c,p.x,p.y)&&clearRestPath(c,p)).sort((a,b)=>Math.hypot(a.x-c.x,a.y-c.y)-Math.hypot(b.x-c.x,b.y-c.y))[0];
+ c.restSpot=spot||null;c.restTravel=!!spot;return !!spot;
+}
+function approachRest(c,dt){
+ if(!c.restSpot&&!reserveRest(c)){c.fk='sit';return false;}
+ if(!c.restTravel)return true;
+ if(!freeRest(c,c.restSpot.x,c.restSpot.y,true)||!clearRestPath(c,c.restSpot)){c.restSpot=null;reserveRest(c);if(!c.restSpot)return false;}
+ c.fk=null;
+ if(moveTo(c,c.restSpot.x,c.restSpot.y,c.sp,dt)<.1){c.restTravel=false;return true;}
+ c.fk=c.mv?walkPose(c):'sit';
+ return false;
+}
+function cancelPair(pair){if(!pair||!pairs.includes(pair))return;pairs.splice(pairs.indexOf(pair),1);for(const c of pair.cats){c.pair=null;c.tgt=null;c.fk=null;c.restSpot=null;c.restTravel=false;c.st='sit';c.tm=behavior.duration(c,'sit');c.recent='social';c.socialCooldown=profile.socialCooldown;if(pair.action==='spar'){c.cooldown=profile.playCooldown;c.tm=Math.max(c.tm,c.cooldown);c.energy=Math.max(0,c.energy-.25);}}}
 function cancelPairs(){for(const pair of [...pairs])cancelPair(pair);}
 function available(c){return c&&!c.pair&&(c.st==='wander'||(['sit','groom'].includes(c.st)&&c.tm<=0))&&!c.motion&&!c.z;}
 function reserve(a,b,action){
@@ -184,7 +224,7 @@ function reserve(a,b,action){
  if(action==='spar'&&pairs.filter(p=>p.action==='spar').length>=limit)return false;
  const middle=Math.max(22,Math.min(W-22,(a.x+b.x)/2)),left=a.x<=b.x?a:b,right=left===a?b:a,half=profile.pairSeparation[action]/2;
  const pair={cats:[left,right],action,phase:'approach',time:0,y:sceneY((a.y+b.y)/2),left:middle-half,right:middle+half};
- pairs.push(pair);for(const c of pair.cats){c.pair=pair;c.st='social';c.tgt=null;c.fk=null;}return true;
+ pairs.push(pair);for(const c of pair.cats){c.pair=pair;c.st='social';c.tgt=null;c.fk=null;c.restSpot=null;c.restTravel=false;}return true;
 }
 function updatePair(pair,dt){
  if(!pairs.includes(pair))return;
@@ -201,7 +241,7 @@ function updatePair(pair,dt){
  }else{pair.time-=dt;moveTo(a,Math.max(9,pair.left-8),pair.y,a.sp*.5,dt);moveTo(b,Math.min(W-9,pair.right+8),pair.y,b.sp*.5,dt);if(pair.time<=0)cancelPair(pair);}
 }
 function choose(c){
- if(c.pair)return;c.tgt=null;c.at=0;c.mat=null;
+ if(c.pair)return;if(box.cat===c)box.cat=null;c.tgt=null;c.at=0;c.mat=null;c.restSpot=null;c.restTravel=false;
  const scene=cycle?.phase==='companion'?'companion':'park';
  const eligible=['sleep','sit','groom','wander'];if(c.artIndex===0)eligible.push('knead','settle');
  const partners=cats.filter(o=>o!==c&&o.artIndex===0&&available(o)&&o.socialCooldown<=0);
@@ -222,14 +262,14 @@ function choose(c){
 }
 function startKnead(c){
  if(cycle?.phase==='companion')return true;
- const free=mats.filter((m,i)=>!cats.some(o=>o!==c&&(o.mat===i||Math.hypot(o.x-m.x,o.y-m.y)<12)));
+ const free=mats.filter((m,i)=>freeRest(c,m.x,m.y)&&!cats.some(o=>o!==c&&o.mat===i));
  if(!free.length){c.st='sit';c.tm=behavior.duration(c,'sit');return false;}
  free.sort((a,b)=>Math.hypot(c.x-a.x,c.y-a.y)-Math.hypot(c.x-b.x,c.y-b.y));
- c.mat=mats.indexOf(free[0]);c.st='kneadApproach';c.tm=0;c.tx=free[0].x;c.ty=free[0].y;return true;
+ c.mat=mats.indexOf(free[0]);c.st='kneadApproach';c.tm=0;c.tx=free[0].x;c.ty=free[0].y;c.restSpot={x:c.tx,y:c.ty};return true;
 }
-function moveTo(c,tx,ty,sp,dt){const dx=tx-c.x,dy=ty-c.y,d=Math.hypot(dx,dy);if(d<.05)return d;const s=Math.min(d,sp*dt),x=c.x+dx/d*s,y=c.y+dy/d*s;
+function moveTo(c,tx,ty,sp,dt){const dx=tx-c.x,dy=ty-c.y,d=Math.hypot(dx,dy);if(d<.05)return d;const s=Math.min(d,sp*dt);let x=c.x+dx/d*s,y=c.y+dy/d*s;
 if(cats.some(o=>o!==c&&!(c.pair&&c.pair===o.pair)&&(c.pair||o.pair)&&Math.hypot(x-o.x,y-o.y)<16&&Math.hypot(x-o.x,y-o.y)<Math.hypot(c.x-o.x,c.y-o.y)))return d;
-c.x=x;c.y=y;if(!c.motion&&c.z===0)c.walkDistance+=s;if(Math.abs(dx)>0.6)c.dir=dx>0?1:-1;c.mv=true;return d}
+const previousX=c.x,previousY=c.y;c.x=Math.max(9,Math.min(W-9,x));c.y=sceneY(y);if(!c.motion&&c.z===0)c.walkDistance+=Math.hypot(c.x-previousX,c.y-previousY);if(Math.abs(dx)>0.6)c.dir=dx>0?1:-1;c.mv=true;return d}
 function walkPose(c){return window.ParkWalk?'walk'+window.ParkWalk.frame(c.walkDistance,c.artIndex):(Math.floor(c.walkDistance/7)%2?'walkB':'walkA');}
 // Analytic ballistics keep the same trajectory at any frame rate. Preparation and
 // recovery keep paws on their support; behaviour resumes only after the landing.
@@ -270,12 +310,15 @@ function advanceJump(c,dt){
 }
 function startPlay(a,o){if(!FREE.includes(o.st)){choose(a);return}a.st='play';a.tgt=o;a.tm=R(2,4);if(o.st!=='play'){o.st='play';o.tgt=a;o.tm=a.tm}
 hearts.push({x:(a.x+o.x)/2,y:Math.min(a.y,o.y)-16,t:0})}
-function updCat(c,dt){c.mv=false;c.tm-=dt;c.an+=dt;let fk=null,fd=null;
+function updCat(c,dt){c.mv=false;c.an+=dt;let fk=null,fd=null;
+if(!resting.has(c.st)&&c.st!=='kneadApproach'){c.restSpot=null;c.restTravel=false;c.mat=null;}
 if(c.motion){advanceJump(c,dt);return}
+if(resting.has(c.st)&&!c.onS&&!approachRest(c,dt))return;
+c.tm-=dt;
 switch(c.st){
 case'wander':if(moveTo(c,c.tx,c.ty,c.sp,dt)<1.5||c.tm<0)choose(c);break;
 case'sit':if(c.tm<0)choose(c);break;
-case'kneadApproach':if(moveTo(c,c.tx,c.ty,c.sp,dt)<1){c.st='knead';c.tm=behavior.duration(c,'knead');}break;
+case'kneadApproach':if(!freeRest(c,c.tx,c.ty)){c.restSpot=null;startKnead(c);break;}if(moveTo(c,c.tx,c.ty,c.sp,dt)<.1){c.st='knead';c.tm=behavior.duration(c,'knead');c.restTravel=false;}break;
 case'knead':fk='knead'+Math.floor(c.an*3)%4;if(c.tm<0)choose(c);break;
 case'settle':fk='settle'+Math.min(3,Math.floor((1-c.tm/c.settleDuration)*4));if(c.tm<=0){c.st='sleep';c.tm=behavior.duration(c,'sleep');c.recent='sleep';fk='sleep';}break;
 case'social':break;
@@ -288,7 +331,7 @@ case'box':if(!c.at){if(moveTo(c,box.x,box.y-0.5,c.sp,dt)<1.5){c.at=1;c.tm=R(4,9)
 case'gym':{if(!c.onS){if(moveTo(c,GYM[0].x,YB+0.5,c.sp,dt)<1.5){c.onS=true;c.gi=0;c.gp=0;c.z=0;c.vz=0;c.y=YB+0.5}else if(c.tm<0)choose(c);break}
 if(c.pt>0){c.pt-=dt;fk=(c.pt%3)<1.2?(Math.floor(c.an*3)%2?'groomB':'groomA'):'sit';break}
 const a=GYM[c.gi],e=GYM[c.gi+1];
-if(!e){c.onS=false;c.z=0;c.st='wander';c.tx=R(150,W-12);c.ty=R(YB+2,YMAX);c.tm=4;break}
+if(!e){c.onS=false;c.z=0;choose(c);break}
 if(e.h){beginJump(c,e.x,c.y,e.z,4.5,'gym');break}
 const len=Math.hypot(e.x-a.x,e.z-a.z),sp=e.slide?75:26;c.gp+=sp*dt/len;const p=Math.min(1,c.gp);
 const previousX=c.x;c.x=a.x+(e.x-a.x)*p;c.z=a.z+(e.z-a.z)*p;c.dir=e.x>=a.x?1:-1;c.mv=true;
@@ -384,9 +427,9 @@ if(offset){e.preventDefault();aim.x=Math.max(6,Math.min(W-6,aim.x+offset[0]));ai
 });
 cv.addEventListener('blur',()=>{aim.visible=false;render()});
 let homes=cats.map(c=>c.x);
-function resetVisitor(c){c.st='wander';c.at=0;c.onS=false;c.tgt=null;c.fk=null;c.fd=null;c.mv=false;c.mat=null;c.tx=c.x;c.ty=c.y;c.tm=0;}
+function resetVisitor(c){c.st='wander';c.at=0;c.onS=false;c.tgt=null;c.fk=null;c.fd=null;c.mv=false;c.mat=null;c.restSpot=null;c.restTravel=false;c.tx=c.x;c.ty=c.y;c.tm=0;}
 function finishJump(c,dt){c.mv=false;c.an+=dt;if(c.motion){advanceJump(c,dt);return false;}return true;}
-function travel(c,x,y,dt){if(!finishJump(c,dt))return false;if(c.z>0){beginJump(c,c.x,c.y,0,1,'return');return false;}resetVisitor(c);return moveTo(c,x,y,c.sp,dt)<1;}
+function travel(c,x,y,dt){if(c.onS&&c.st==='gym'){updCat(c,dt);return false;}if(!finishJump(c,dt))return false;if(c.z>0){beginJump(c,c.x,c.y,0,1,'return');return false;}resetVisitor(c);return moveTo(c,x,y,c.sp,dt)<1;}
 cycle=new window.ParkCycle.Cycle(loaded.settings,{
   park:parkStep,
   prepareVisit(){cancelPairs();homes=cats.map(c=>c.x);aim.visible=false;},
@@ -416,8 +459,12 @@ visit(){cycle.visit();refreshLoop();},back(){cycle.back();refreshLoop();},
 save(settings){if(orangePreview)return 'La demostración no guarda preferencias.';if(cycle.phase!=='companion'&&settings.cats!==cycle.settings.cats)return 'Volvé a la compañía para cambiar la cantidad.';let error;try{error=window.ParkCycle.save(window.localStorage,settings);}catch{error='No se pudo guardar en este navegador. Las preferencias aplicadas siguen iguales.';}if(error)return error;
 const changed=settings.cats!==cycle.settings.cats;cycle.configure(settings);if(changed&&!orangePreview){cancelPairs();cats.length=0;box.cat=null;for(let i=0;i<settings.cats;i++){const c=newCat(R(14,W-14),141);resetVisitor(c);choose(c);cats.push(c);}box.cat=null;homes=cats.map(c=>c.x);}loaded.message='';refreshLoop();return null;}};
 if(orangePreview)window.orangeDemo={
- choose(action){if(!['knead','settle','rub','cuddle','spar'].includes(action))return false;cancelPairs();if(cats.some(c=>c.motion||c.z))return false;box.cat=null;for(const c of cats){c.st='sit';c.tm=30;c.fk=null;c.at=0;c.mat=null;c.cooldown=0;c.socialCooldown=0;}if(action==='knead'||action==='settle'){cats[0].st=action;cats[0].tm=behavior.duration(cats[0],action);if(action==='settle')cats[0].settleDuration=cats[0].tm;else startKnead(cats[0]);return true;}let pair=null,shortest=Infinity;for(let i=0;i<cats.length;i++)for(let j=i+1;j<cats.length;j++){const d=Math.hypot(cats[i].x-cats[j].x,cats[i].y-cats[j].y);if(d<shortest){shortest=d;pair=[cats[i],cats[j]];}}pair[0].tm=pair[1].tm=0;return reserve(pair[0],pair[1],action);},
- reset(){cancelPairs();cats.forEach(choose);},
+ choose(action){if(!['knead','settle','rub','cuddle','spar'].includes(action))return false;if(cats.some(c=>c.motion||c.z||c.onS))return false;cancelPairs();box.cat=null;
+  for(const c of cats){c.st='sit';c.tm=30;c.fk=null;c.at=0;c.mat=null;c.restSpot=null;c.restTravel=false;c.cooldown=0;c.socialCooldown=0;}
+  if(action==='knead'||action==='settle'){cats[0].st=action;cats[0].tm=behavior.duration(cats[0],action);if(action==='settle')cats[0].settleDuration=cats[0].tm;else startKnead(cats[0]);return true;}
+  let pair=null,shortest=Infinity;for(let i=0;i<cats.length;i++)for(let j=i+1;j<cats.length;j++){const d=Math.hypot(cats[i].x-cats[j].x,cats[i].y-cats[j].y);if(d<shortest){shortest=d;pair=[cats[i],cats[j]];}}
+  pair[0].tm=pair[1].tm=0;return reserve(pair[0],pair[1],action);},
+ reset(){cancelPairs();cats.filter(c=>!c.motion&&!c.onS&&!c.z).forEach(choose);},
  setFps(fps){if(fps!==30&&fps!==60)return false;cycle.configure({...cycle.settings,fps});refreshLoop();return true;},
  snapshot(){return {phase:cycle.phase,fps:cycle.settings.fps,cats:cats.map(c=>({x:c.x,y:c.y,st:c.st,pose:c.fk,remaining:c.pair?null:c.tm,direction:c.dir,partner:c.pair?cats.indexOf(c.pair.cats.find(o=>o!==c)):-1,energy:c.energy,cooldown:c.cooldown,paired:!!c.pair})),pairs:pairs.map(p=>({action:p.action,phase:p.phase,remaining:p.phase==='approach'?Math.max(0,20-p.time):p.time,actors:p.cats.map(c=>cats.indexOf(c))}))};}
 };
