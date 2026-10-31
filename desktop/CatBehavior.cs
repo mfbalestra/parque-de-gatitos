@@ -84,7 +84,9 @@ internal sealed class CatBehavior
     private void Start(int i, string action)
     {
         var s = states[i];
-        bool retainRest = s.RestReserved && ((s.Action == "knead" && action == "settle") || (s.Action == "settle" && action == "sleep"));
+        bool settling = s.Action == "settle" && action == "sleep";
+        if (action == "sleep" && !CanSleep(i)) action = s.Random.NextDouble() < .5 ? "sit" : "groom";
+        bool retainRest = s.RestReserved && ((s.Action == "knead" && action == "settle") || settling);
         s.Previous = s.Action; s.Action = action; s.Age = 0;
         if (!retainRest) s.RestReserved = s.RestReady = false;
         if (action == "knead") s.Mat = -1;
@@ -92,6 +94,8 @@ internal sealed class CatBehavior
         s.Remaining = Duration(action, s.Random);
     }
     private static bool IsRest(string action) => action is "sleep" or "sit" or "groom" or "settle" or "knead";
+    internal bool CanSleep(params int[] participants) => states.Length == 1 ||
+        states.Where((s, i) => !participants.Contains(i)).Any(s => s.Action is not ("sleep" or "cuddle"));
     private bool FindRest(int i, double width, double height, bool park, bool matOnly = false)
     {
         var s = states[i]; var cat = cats[i];
@@ -130,6 +134,7 @@ internal sealed class CatBehavior
     }
     private void StartPair(int i, int j, string action)
     {
+        if (action == "cuddle" && !CanSleep(i, j)) action = "rub";
         Start(i, action); Start(j, action);
         states[i].Partner = j; states[j].Partner = i;
         states[i].Contact = states[j].Contact = false;

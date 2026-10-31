@@ -6,6 +6,7 @@ void Check(bool value, string reason) { assertions++; if (!value) throw new Exce
 SettingsContracts.Run(Check);
 WalkContracts.Run(Check);
 BehaviorContracts.Run(Check);
+AwakeContracts.Run(Check);
 foreach (double dt in new[] { .01, 1.0 / 30, 1.0 / 60 })
 foreach (int width in new[] { 800, 1920, 3840 })
 {

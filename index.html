@@ -219,6 +219,7 @@ function cancelPairs(){for(const pair of [...pairs])cancelPair(pair);}
 function available(c){return c&&!c.pair&&(c.st==='wander'||(['sit','groom'].includes(c.st)&&c.tm<=0))&&!c.motion&&!c.z;}
 function reserve(a,b,action){
  if(a===b||!available(a)||!available(b))return false;
+ if(action==='cuddle'&&!behavior.canSleep(cats,[a,b]))return false;
  if(action==='spar'&&(a.cooldown>0||b.cooldown>0))return false;
  const limit=cycle?.phase==='companion'?profile.pairLimitCompanion:cats.length>=8?profile.pairLimitParkEight:profile.pairLimitParkFour;
  if(action==='spar'&&pairs.filter(p=>p.action==='spar').length>=limit)return false;
@@ -243,7 +244,7 @@ function updatePair(pair,dt){
 function choose(c){
  if(c.pair)return;if(box.cat===c)box.cat=null;c.tgt=null;c.at=0;c.mat=null;c.restSpot=null;c.restTravel=false;
  const scene=cycle?.phase==='companion'?'companion':'park';
- const eligible=['sleep','sit','groom','wander'];if(c.artIndex===0)eligible.push('knead','settle');
+ const eligible=['sit','groom','wander'];if(behavior.canSleep(cats,[c]))eligible.push('sleep');if(c.artIndex===0)eligible.push('knead','settle');
  const partners=cats.filter(o=>o!==c&&o.artIndex===0&&available(o)&&o.socialCooldown<=0);
  if(c.artIndex===0&&c.socialCooldown<=0&&partners.length)eligible.push('social');if(scene==='park'&&c.cooldown<=0)eligible.push('environment');
  let action=behavior.select(c,scene,eligible,cats.filter(o=>o!==c));c.recent=action;if(action==='knead'&&behavior.random(c)<.35)action='settle';
@@ -320,7 +321,7 @@ case'wander':if(moveTo(c,c.tx,c.ty,c.sp,dt)<1.5||c.tm<0)choose(c);break;
 case'sit':if(c.tm<0)choose(c);break;
 case'kneadApproach':if(!freeRest(c,c.tx,c.ty)){c.restSpot=null;startKnead(c);break;}if(moveTo(c,c.tx,c.ty,c.sp,dt)<.1){c.st='knead';c.tm=behavior.duration(c,'knead');c.restTravel=false;}break;
 case'knead':fk='knead'+Math.floor(c.an*3)%4;if(c.tm<0)choose(c);break;
-case'settle':fk='settle'+Math.min(3,Math.floor((1-c.tm/c.settleDuration)*4));if(c.tm<=0){c.st='sleep';c.tm=behavior.duration(c,'sleep');c.recent='sleep';fk='sleep';}break;
+case'settle':fk='settle'+Math.min(3,Math.floor((1-c.tm/c.settleDuration)*4));if(c.tm<=0){c.st=behavior.canSleep(cats,[c])?'sleep':behavior.random(c)<.5?'sit':'groom';c.tm=behavior.duration(c,c.st);c.recent=c.st;fk=c.st==='groom'?'groomA':c.st;}break;
 case'social':break;
 case'sleep':if(rnd()<dt*0.7)zs.push({x:c.x+c.dir*4,y:c.y-11,t:0});if(c.tm<0)choose(c);break;
 case'stretch':fk='stretch';if(c.tm<0)choose(c);break;
