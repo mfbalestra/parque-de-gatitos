@@ -16,6 +16,7 @@ body{background:linear-gradient(#7cc6f0 50%,#6fbb4d 50%);display:flex;align-item
 canvas{display:block;width:min(100vw,calc(100vh * 16 / 9));height:auto;aspect-ratio:16/9;image-rendering:pixelated;cursor:pointer}
 canvas:focus-visible{outline:3px solid #fff;outline-offset:-6px;box-shadow:0 0 0 3px #183326}
 </style>
+<link rel="stylesheet" href="web-controls.css">
 </head>
 <body>
 <main>
@@ -23,10 +24,38 @@ canvas:focus-visible{outline:3px solid #fff;outline-offset:-6px;box-shadow:0 0 0
 <canvas id="pk" width="1536" height="864" role="img" tabindex="0" aria-label="Parque animado en pixel art con gatitos que juegan, ruedan, trepan y se tiran por el tobogán" aria-describedby="park-help park-status"></canvas>
 <p id="park-help" class="sr-only">Tocá o hacé clic para tirar un ovillo. Con el teclado, usá las flechas para apuntar y Enter para tirarlo. Espacio pausa o reanuda la animación.</p>
 <p id="park-status" class="sr-only" role="status" aria-live="polite"></p>
+<div class="park-toolbar" role="group" aria-label="Controles de la escena">
+<button id="toggle-pause" type="button">Pausar</button>
+<button id="toggle-hide" type="button">Ocultar</button>
+<button id="open-controls" type="button" aria-haspopup="dialog">Controles</button>
+</div>
+<p id="scene-notice" role="status"></p>
+<dialog id="park-controls" aria-labelledby="controls-title" aria-describedby="companion-help">
+<header class="controls-header"><h2 id="controls-title">Controles de gatitos</h2><button id="close-controls" type="button" autofocus>Cerrar</button></header>
+<form id="park-settings" novalidate>
+<div class="controls-body">
+<p id="activity-status" class="activity"></p><p id="schedule-status"></p>
+<p id="companion-help"><strong>Compañía en esta pestaña</strong>: los gatos caminan y descansan en una franja tranquila, dentro de esta página. Alternan con visitas al parque.</p>
+<div class="control-actions"><button id="panel-pause" type="button">Pausar</button><button id="panel-hide" type="button">Ocultar</button><button id="visit-now" type="button">Ir al parque ahora</button><button id="return-companion" type="button">Volver a la compañía</button></div>
+<fieldset class="control-group"><legend>Gatos y movimiento</legend><div class="control-fields">
+<label class="control-field" for="cat-count">Cantidad de gatos<select id="cat-count" aria-describedby="count-help"><option value="1">1 gato</option><option value="4">4 gatos</option><option value="8">8 gatos</option></select></label>
+<label class="control-field" for="frame-rate">Fluidez<select id="frame-rate" aria-describedby="fps-help"><option value="30">30 FPS</option><option value="60">60 FPS</option></select></label>
+</div><p id="count-help" class="control-help"></p><p id="fps-help" class="control-help">30 FPS dibuja menos veces. 60 FPS da más fluidez, según tu pantalla. La velocidad y los tiempos son iguales.</p></fieldset>
+<fieldset class="control-group"><legend>Visitas al parque</legend><div class="control-fields">
+<label class="control-field" for="companion-minutes"><span class="duration-caption">Compañía: minutos entre visitas (1–240)</span><input id="companion-minutes" type="number" min="1" max="240" step="1" inputmode="numeric" required aria-describedby="companion-error"><span id="companion-error" class="field-error"></span></label>
+<label class="control-field" for="stay-minutes"><span class="duration-caption">Estadía en el parque (1–60 minutos)</span><input id="stay-minutes" type="number" min="1" max="60" step="1" inputmode="numeric" required aria-describedby="stay-error"><span id="stay-error" class="field-error"></span></label>
+</div><p class="control-help">Pausar, ocultar o cambiar de pestaña detiene también el reloj. Al volver, continúa desde donde quedó.</p></fieldset>
+</div>
+<footer class="controls-footer"><p id="settings-dirty"></p><button type="submit">Guardar preferencias</button><p id="settings-message" role="status" aria-live="polite"></p></footer>
+</form>
+</dialog>
 </main>
 <script src="art-data.js"></script>
+<script src="walk-data.js"></script>
 <script src="scene-art.js"></script>
 <script src="park-details.js"></script>
+<script src="park-cycle.js"></script>
+<script src="web-controls.js"></script>
 <script>
 (()=>{
 const cv=document.getElementById('pk'),g=cv.getContext('2d');
@@ -135,7 +164,7 @@ g.fillStyle='#c98a4a';g.fillRect(x-11,y-10,22,10);g.fillStyle='#7a4a1e';g.fillRe
 g.fillStyle='#e0b070';g.fillRect(x-4,y-9,8,8);g.fillStyle='#d9a35f';g.fillRect(x-15,y-12,4,2);g.fillRect(x+11,y-12,4,2)}
 function newCat(x,y){const coat=pick(coats),wd=RI(0,3),salt=RI(0,20),fr={};
 for(const k in TPL){const q=WC[k];fr[k]=build(TPL[k].map(r=>r.slice(0,q+1)+r[q].repeat(wd)+r.slice(q+1)),coat,salt)}
-const c={kind:'cat',artIndex:cats.length,x,y,z:0,vz:0,dir:rnd()<.5?1:-1,fr,st:'wander',tm:R(1,3),tx:x,ty:y,sp:R(15,24)-wd*2,an:R(0,1),tgt:null,mv:false};choose(c);return c}
+const c={kind:'cat',artIndex:cats.length,x,y,z:0,vz:0,dir:rnd()<.5?1:-1,fr,st:'wander',tm:R(1,3),tx:x,ty:y,sp:R(15,24)-wd*2,an:R(0,1),walkDistance:0,tgt:null,mv:false};choose(c);return c}
 function newBall(x,y){return {kind:'ball',x,y,vx:0,vy:0,rot:0,c:pick(['#e8577c','#4aa3e0','#8a6ad8','#f2c230','#e24b4a'])}}
 function choose(c){const r=rnd();c.tgt=null;c.at=0;
 if(r<.2){c.st='wander';c.tx=R(12,W-12);c.ty=R(YMIN,YMAX);c.tm=R(3,7)}
@@ -150,7 +179,8 @@ else if(r<.88&&cats.filter(o=>o.st==="gym").length<3){c.st='gym';c.onS=false;c.p
 else if(r<.93&&!box.cat){c.st='box';box.cat=c;c.tm=15}
 else if(r<.97){c.st='scratch';c.tm=12}
 else{c.st='stretch';c.tm=1.5}}
-function moveTo(c,tx,ty,sp,dt){const dx=tx-c.x,dy=ty-c.y,d=Math.hypot(dx,dy);if(d<1)return d;const s=Math.min(d,sp*dt);c.x+=dx/d*s;c.y+=dy/d*s;if(Math.abs(dx)>0.6)c.dir=dx>0?1:-1;c.mv=true;return d}
+function moveTo(c,tx,ty,sp,dt){const dx=tx-c.x,dy=ty-c.y,d=Math.hypot(dx,dy);if(d<1)return d;const s=Math.min(d,sp*dt);c.x+=dx/d*s;c.y+=dy/d*s;if(!c.motion&&c.z===0)c.walkDistance+=s;if(Math.abs(dx)>0.6)c.dir=dx>0?1:-1;c.mv=true;return d}
+function walkPose(c){return window.ParkWalk?'walk'+window.ParkWalk.frame(c.walkDistance,c.artIndex):(Math.floor(c.walkDistance/7)%2?'walkB':'walkA');}
 // Analytic ballistics keep the same trajectory at any frame rate. Preparation and
 // recovery keep paws on their support; behaviour resumes only after the landing.
 const JUMP={gravity:220,prepare:.16,landing:.10,recover:.14};
@@ -207,8 +237,9 @@ const a=GYM[c.gi],e=GYM[c.gi+1];
 if(!e){c.onS=false;c.z=0;c.st='wander';c.tx=R(150,W-12);c.ty=R(YB+2,YMAX);c.tm=4;break}
 if(e.h){beginJump(c,e.x,c.y,e.z,4.5,'gym');break}
 const len=Math.hypot(e.x-a.x,e.z-a.z),sp=e.slide?75:26;c.gp+=sp*dt/len;const p=Math.min(1,c.gp);
-c.x=a.x+(e.x-a.x)*p;c.z=a.z+(e.z-a.z)*p;c.dir=e.x>=a.x?1:-1;c.mv=true;
-fk=e.slide?'sit':(Math.floor(c.an*7)%2?'walkB':'walkA');
+const previousX=c.x;c.x=a.x+(e.x-a.x)*p;c.z=a.z+(e.z-a.z)*p;c.dir=e.x>=a.x?1:-1;c.mv=true;
+if(!e.slide)c.walkDistance+=Math.abs(c.x-previousX);
+fk=e.slide?'sit':walkPose(c);
 if(e.slide&&rnd()<dt*14)sparks.push({x:c.x-6,y:c.y-c.z-3,t:0});
 if(p>=1){c.gi++;c.gp=0;if(e.perch&&rnd()<.8)c.pt=R(2,6)}
 break}
@@ -232,9 +263,9 @@ g.save();g.translate(x,y);g.scale(w/2,h/2);const gradient=g.createRadialGradient
 if(gradient){gradient.addColorStop(0,`rgba(40,70,30,${opacity})`);gradient.addColorStop(1,'rgba(40,70,30,0)');g.fillStyle=gradient;g.beginPath();g.arc(0,0,1,0,Math.PI*2);g.fill()}g.restore();
 }
 function drawCat(c){if(c.st==='box'&&c.at)return;
-const fk=c.fk||(c.st==='sleep'?'sleep':c.z>0?'walkB':c.mv?(Math.floor(c.an*7)%2?'walkB':'walkA'):'sit');
+const fk=c.fk||(c.st==='sleep'?'sleep':c.z>0?'walkB':c.mv?walkPose(c):'sit');
 const fallback={scratchA:'scratch',scratchB:'scratch',crouch:'stretch',landing:'stretch',jumpRise:'walkB',jumpTuck:'belly',jumpFall:'walkA'};
-const d=c.fd||c.dir,s=c.fr[fallback[fk]||fk][d>0?0:1],p=art&&art.pose(c,fk==='sit'&&c.st==='wander'?'standing':fk),w=p?p.width:s.width,x=p?Math.max(13,Math.min(W-13,c.x)):c.x;
+const d=c.fd||c.dir,s=c.fr[fallback[fk]||(/^walk[0-7]$/.test(fk)?(Number(fk.slice(4))%2?'walkB':'walkA'):fk)][d>0?0:1],p=art&&art.pose(c,fk==='sit'&&c.st==='wander'?'standing':fk),w=p?p.width:s.width,x=p?Math.max(13,Math.min(W-13,c.x)):c.x;
 const m=c.motion,support=c.onS?c.z:0,altitude=Math.max(0,c.z-support);
 if(c.onS&&m){
   const progress=m.elapsed/m.duration;
@@ -250,23 +281,30 @@ if(open){g.fillRect(x-2,y-1,2,2);g.fillRect(x+1,y-1,2,2);g.fillRect(x-1,y+1,1,1)
 g.fillStyle='#2e2a33';g.fillRect(x,y-1,1,3)}
 
 const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
-let t=0,running=!reducedMotion.matches;
+let t=0,running=!reducedMotion.matches,hidden=false,controls=null,cycle=null;
 const aim={x:128,y:124,visible:false},status=document.getElementById('park-status');
 function announce(){status.textContent=running?'Animación en marcha.':'Animación pausada. Presioná Espacio para reanudar.'}
 announce();
-reducedMotion.addEventListener('change',e=>{running=!e.matches;announce()});
-function render(){const illustrated=art&&art.background(g,W,H);if(!illustrated)g.drawImage(bg,0,0);
+reducedMotion.addEventListener('change',e=>{running=!e.matches;announce();refreshLoop()});
+function render(){
+g.fillStyle='#eee9dd';g.fillRect(0,0,W,H);g.fillStyle='#ddd9c9';g.fillRect(0,140,W,4);
+if(hidden)return;
+const opacity=cycle?cycle.opacity:1;
+if(opacity===0){cats.slice().sort((a,b)=>a.y-b.y).forEach(drawCat);return;}
+g.save();g.globalAlpha=opacity;
+const illustrated=art&&art.background(g,W,H);if(!illustrated)g.drawImage(bg,0,0);
 if(!illustrated)for(let k=0;k<8;k++){const a=k*Math.PI/4+t*0.4,on=(Math.floor(t*2)+k)%2;if(on){px(g,214+Math.cos(a)*12,22+Math.sin(a)*12,'#ffd84a');px(g,214+Math.cos(a)*13.5,22+Math.sin(a)*13.5,'#ffe98a')}}
 clouds.forEach(c=>g.drawImage(cloud,Math.round(c.x),c.y));
 flowers.forEach(f=>{const sw=Math.round(Math.sin(t*2+f.p)*0.7);px(g,f.x,f.y,'#3f8a30');px(g,f.x+sw*0.5,f.y-1,'#3f8a30');const bx=f.x+sw,by=f.y-3;g.fillStyle=f.c;g.fillRect(bx-1,by,3,1);g.fillRect(bx,by-1,1,3);px(g,bx,by,'#ffe98a')});
 if(window.PARK_DETAILS)window.PARK_DETAILS.drawGround(g,t);
-[...cats,...balls,gymE,box].sort((a,b)=>a.y-b.y).forEach(o=>o.kind==='cat'?drawCat(o):o.kind==='ball'?drawBall(o):o.kind==='gym'?drawGym():drawBox(o));
+[...(opacity===1?cats:[]),...balls,gymE,box].sort((a,b)=>a.y-b.y).forEach(o=>o.kind==='cat'?drawCat(o):o.kind==='ball'?drawBall(o):o.kind==='gym'?drawGym():drawBox(o));
 sparks.forEach(s=>{const y=s.y-s.t*6;g.fillStyle='#ffe98a';g.fillRect(Math.round(s.x),Math.round(y)-1,1,3);g.fillRect(Math.round(s.x)-1,Math.round(y),3,1)});
 flies.forEach(drawFly);
 hearts.forEach(h=>{const y=h.y-h.t*12;if(h.t<1.2||Math.floor(h.t*10)%2)pat(HEART,h.x-2,y,'#e8577c',1)});
 zs.forEach(z=>pat(ZED,z.x+Math.sin(z.t*3)*2,z.y-z.t*8,'#ffffff',1));
-if(aim.visible){g.strokeStyle='#183326';g.lineWidth=1.5;g.strokeRect(aim.x-3,aim.y-3,6,6);g.strokeStyle='#ffffff';g.lineWidth=.5;g.strokeRect(aim.x-3,aim.y-3,6,6)}}
-function step(dt){t+=dt;clouds.forEach(c=>{c.x+=c.v*dt;if(c.x>W+4)c.x=-30});
+if(aim.visible){g.strokeStyle='#183326';g.lineWidth=1.5;g.strokeRect(aim.x-3,aim.y-3,6,6);g.strokeStyle='#ffffff';g.lineWidth=.5;g.strokeRect(aim.x-3,aim.y-3,6,6)}
+g.restore();if(opacity<1)cats.slice().sort((a,b)=>a.y-b.y).forEach(drawCat);}
+function parkStep(dt){clouds.forEach(c=>{c.x+=c.v*dt;if(c.x>W+4)c.x=-30});
 cats.forEach(c=>updCat(c,dt));balls.forEach(o=>updBall(o,dt));flies.forEach(f=>updFly(f,dt));
 for(let i=hearts.length-1;i>=0;i--){hearts[i].t+=dt;if(hearts[i].t>1.6)hearts.splice(i,1)}
 for(let i=zs.length-1;i>=0;i--){zs[i].t+=dt;if(zs[i].t>2)zs.splice(i,1)}
@@ -274,23 +312,60 @@ for(let i=sparks.length-1;i>=0;i--){sparks[i].t+=dt;if(sparks[i].t>0.6)sparks.sp
 
 for(let i=0;i<4;i++)flies.push({kind:'fly',x:R(20,W-20),y:R(60,115),a:R(0,6),t:R(0,1),scare:0,c:pick(['#f2c230','#e8577c','#ffffff','#4aa3e0'])});
 balls.push(newBall(70,128),newBall(180,118));
-for(let i=0;i<8;i++)cats.push(newCat(R(14,W-14),R(YMIN,YMAX)));
+let loaded;
+try{loaded=window.ParkCycle.load(window.localStorage);}catch{loaded=window.ParkCycle.load(null);}
+for(let i=0;i<loaded.settings.cats;i++)cats.push(newCat(R(14,W-14),R(YMIN,YMAX)));
 cats.filter(c=>c.st!=='box'&&c.st!=="gym").slice(0,2).forEach(c=>{c.st='sleep';c.tm=R(4,9)});
 
 function throwBall(x,y){
 const o=newBall(Math.max(6,Math.min(W-6,x)),y);o.vy=-10;balls.push(o);if(balls.length>7)balls.shift();
 cats.filter(c=>FREE.includes(c.st)).sort((a,b)=>Math.hypot(a.x-o.x,a.y-o.y)-Math.hypot(b.x-o.x,b.y-o.y)).slice(0,4).forEach(c=>{c.st='chase';c.tgt=o;c.tm=6})}
-cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=clampY((e.clientY-r.top)/r.height*H);aim.visible=false;throwBall(x,y)});
+const canPlay=()=>cycle.phase==='visiting'&&!hidden&&!document.hidden;
+cv.addEventListener('click',e=>{if(!canPlay())return;const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=clampY((e.clientY-r.top)/r.height*H);aim.visible=false;throwBall(x,y);render()});
 cv.addEventListener('keydown',e=>{
-if(e.key===' '){e.preventDefault();if(!e.repeat){running=!running;announce()}return}
-if(e.key==='Enter'){e.preventDefault();aim.visible=true;throwBall(aim.x,aim.y);return}
+if(e.key===' '){e.preventDefault();if(!e.repeat){running=!running;announce();refreshLoop()}return}
+if(!canPlay())return;
+if(e.key==='Enter'){e.preventDefault();aim.visible=true;throwBall(aim.x,aim.y);render();return}
 const offset={ArrowLeft:[-6,0],ArrowRight:[6,0],ArrowUp:[0,-6],ArrowDown:[0,6]}[e.key];
-if(offset){e.preventDefault();aim.x=Math.max(6,Math.min(W-6,aim.x+offset[0]));aim.y=clampY(aim.y+offset[1]);aim.visible=true}
+if(offset){e.preventDefault();aim.x=Math.max(6,Math.min(W-6,aim.x+offset[0]));aim.y=clampY(aim.y+offset[1]);aim.visible=true;render()}
 });
-cv.addEventListener('blur',()=>{aim.visible=false});
-let last=performance.now();
-function loop(now){const dt=Math.min(0.05,(now-last)/1000);last=now;if(running)step(dt);render();requestAnimationFrame(loop)}
-render();requestAnimationFrame(loop);
+cv.addEventListener('blur',()=>{aim.visible=false;render()});
+let homes=cats.map(c=>c.x);
+function resetVisitor(c){c.st='wander';c.at=0;c.onS=false;c.tgt=null;c.fk=null;c.fd=null;c.mv=false;c.tx=c.x;c.ty=c.y;c.tm=0;}
+function finishJump(c,dt){c.mv=false;c.an+=dt;if(c.motion){advanceJump(c,dt);return false;}return true;}
+function travel(c,x,y,dt){if(!finishJump(c,dt))return false;if(c.z>0){beginJump(c,c.x,c.y,0,1,'return');return false;}resetVisitor(c);return moveTo(c,x,y,c.sp,dt)<1;}
+cycle=new window.ParkCycle.Cycle(loaded.settings,{
+  park:parkStep,
+  prepareVisit(){homes=cats.map(c=>c.x);aim.visible=false;},
+  prepareReturn(){box.cat=null;aim.visible=false;for(const c of cats){c.at=0;c.tgt=null;if(!c.motion){c.fk=null;c.fd=null;}}hearts.length=0;zs.length=0;sparks.length=0;},
+  finishJumps(dt){for(const c of cats)finishJump(c,dt);},
+  enter(dt){let arrived=true;cats.forEach((c,i)=>{if(!travel(c,30+i*27,112+i%3*10,dt))arrived=false;});return arrived;},
+  leave(dt){let arrived=true;cats.forEach((c,i)=>{if(!travel(c,homes[i],141,dt))arrived=false;});return arrived;},
+  resumeCompanion(){cats.forEach(c=>{resetVisitor(c);c.st='companion';c.tm=R(1,4);});},
+  companion(dt){for(const c of cats){c.mv=false;c.an+=dt;c.tm-=dt;if(c.tm<=0){c.tx=R(14,W-14);c.tm=R(5,15);c.companionRest=rnd()<.45;c.fk=c.companionRest?(rnd()<.4?'sleep':'sit'):null;}if(!c.companionRest&&moveTo(c,c.tx,141,c.sp*.65,dt)<1){c.companionRest=true;c.fk='sit';c.tm=R(2,6);}}},
+  phaseChanged(phase){if(phase==='visiting')cats.forEach(choose);if(phase==='companion')document.body.classList.add('companion-scene');else document.body.classList.remove('companion-scene');controls?.refresh();}
+});
+function step(dt){t+=dt;cycle.advance(dt);}
+let last=performance.now(),accumulator=0,frameId=null,lastStatus=-1;
+const pacer=new window.ParkCycle.FramePacer(cycle.settings.fps);
+const active=()=>running&&!hidden&&!document.hidden;
+function updateNotice(){document.getElementById('scene-notice').textContent=hidden?'Escena oculta. Usá Mostrar para volver.':!running?'Animación en pausa. Usá Reanudar para continuar.':loaded.message;}
+function loop(now){frameId=null;if(!active())return;const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;accumulator+=dt;
+while(accumulator+1e-10>=1/60){step(1/60);accumulator-=1/60;}
+if(pacer.shouldRender(now))render();
+if(Math.floor(t)!==lastStatus){lastStatus=Math.floor(t);controls?.refresh();}
+frameId=requestAnimationFrame(loop);}
+function refreshLoop(){if(frameId!==null){cancelAnimationFrame(frameId);frameId=null;}last=performance.now();pacer.configure(cycle.settings.fps);accumulator=0;render();controls?.refresh();updateNotice();if(active())frameId=requestAnimationFrame(loop);}
+const api={state:()=>({settings:{...cycle.settings},phase:cycle.phase,elapsed:cycle.elapsed,status:cycle.status(),revisit:cycle.revisit,paused:!running,hidden,background:!!document.hidden}),
+togglePause(){running=!running;announce();refreshLoop();},
+toggleHide(){hidden=!hidden;document.body.classList.toggle('scene-hidden',hidden);cv.tabIndex=hidden?-1:0;cv.setAttribute('aria-hidden',String(hidden));refreshLoop();},
+visit(){cycle.visit();refreshLoop();},back(){cycle.back();refreshLoop();},
+save(settings){if(cycle.phase!=='companion'&&settings.cats!==cycle.settings.cats)return 'Volvé a la compañía para cambiar la cantidad.';let error;try{error=window.ParkCycle.save(window.localStorage,settings);}catch{error='No se pudo guardar en este navegador. Las preferencias aplicadas siguen iguales.';}if(error)return error;
+const changed=settings.cats!==cycle.settings.cats;cycle.configure(settings);if(changed){cats.length=0;box.cat=null;for(let i=0;i<settings.cats;i++){const c=newCat(R(14,W-14),141);resetVisitor(c);c.st='companion';c.tm=R(1,4);cats.push(c);}box.cat=null;homes=cats.map(c=>c.x);}loaded.message='';refreshLoop();return null;}};
+controls=window.createWebControls(api,loaded.message);
+document.addEventListener('visibilitychange',refreshLoop);
+window.parkArtChanged=()=>{render();};
+refreshLoop();
 
 })();
 </script>

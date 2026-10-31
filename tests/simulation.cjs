@@ -5,21 +5,31 @@ const crypto=require('node:crypto');
 const assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..');
 
-function makeSimulation(html){
+function makeSimulation(html,options={}){
   const listeners={},mediaListeners=[];
   const context2d=new Proxy({}, {get:(o,k)=>k in o?o[k]:(()=>{}),set:(o,k,v)=>(o[k]=v,true)});
   const rectangle={left:0,top:0,width:1280,height:720};
   const canvas={width:1536,height:864,getContext:()=>context2d,getBoundingClientRect:()=>rectangle,addEventListener:(name,fn)=>{listeners[name]=fn}};
-  const status={textContent:''};
-  let frame;
-  const context={console,performance:{now:()=>0},requestAnimationFrame:fn=>{frame=fn},document:{getElementById:id=>id==='pk'?canvas:status,createElement:()=>({...canvas})},matchMedia:()=>({matches:false,addEventListener:(name,fn)=>mediaListeners.push(fn)})};
+  const elements=new Map(),documentListeners={},storage=new Map(Object.entries(options.storage||{}));
+  const element=id=>{if(elements.has(id))return elements.get(id);const events={},attributes={},classes=new Set();const node={id,value:'',textContent:'',disabled:false,open:false,tabIndex:0,attributes,events,
+    classList:{add:name=>classes.add(name),remove:name=>classes.delete(name),toggle(name,on){if(on===undefined)on=!classes.has(name);if(on)classes.add(name);else classes.delete(name);return on;}},
+    addEventListener:(name,fn)=>{events[name]=fn},setAttribute:(name,value)=>{attributes[name]=value},removeAttribute:name=>delete attributes[name],focus(){document.activeElement=node},closest:()=>element(id+'-label'),scrollIntoView(){node.scrolledIntoView=true;},showModal(){node.open=true;},close(){node.open=false;events.close?.();},
+    dispatch(name,extra={}){events[name]?.({preventDefault(){},...extra});}};elements.set(id,node);return node;};
+  Object.assign(canvas,{setAttribute:element('canvas-attributes').setAttribute});
+  const status=element('park-status');let frame,now=0,frameId=0;const pending=new Map();
+  const document={hidden:false,body:element('body'),activeElement:null,getElementById:id=>id==='pk'?canvas:element(id),createElement:()=>({...canvas}),addEventListener:(name,fn)=>{documentListeners[name]=fn}};
+  const context={console,performance:{now:()=>now},requestAnimationFrame:fn=>{frame=fn;pending.set(++frameId,fn);return frameId;},cancelAnimationFrame:id=>pending.delete(id),document,
+    localStorage:{getItem:key=>{if(options.readError)throw Error('storage denied');return storage.get(key)??null;},setItem:(key,value)=>{if(options.writeError)throw Error('storage denied');storage.set(key,value);}},
+    matchMedia:()=>({matches:!!options.reducedMotion,addEventListener:(name,fn)=>mediaListeners.push(fn)})};
   context.window=context;
   vm.createContext(context);
   const inline=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).join('\n');
   assert(inline.includes('function step(dt)'), 'The real simulation must be loaded');
-  const hook=`globalThis.__test={step,render,cats,balls,flies,box,GYM,JUMP,beginJump,advanceJump,updCat,drawCat,getTime:()=>t,getSeed:()=>seed};`;
+  for(const name of ['park-cycle.js','web-controls.js'])vm.runInContext(fs.readFileSync(path.join(root,name),'utf8'),context);
+  if(fs.existsSync(path.join(root,'walk-data.js')))vm.runInContext(fs.readFileSync(path.join(root,'walk-data.js'),'utf8'),context);
+  const hook=`globalThis.__test={step,render,cats,balls,flies,box,GYM,JUMP,beginJump,advanceJump,updCat,drawCat,moveTo,walkPose,cycle,api,getTime:()=>t,getSeed:()=>seed};`;
   vm.runInContext(inline.replace(/\}\)\(\);\s*$/,hook+'})();'),context,{timeout:3000});
-  return {world:context.__test,click:(x,y)=>listeners.click({clientX:rectangle.left+x*rectangle.width,clientY:rectangle.top+y*rectangle.height}),key:key=>listeners.keydown({key,repeat:false,preventDefault(){}}),rectangle,frame:now=>frame(now),status,media:matches=>mediaListeners.forEach(fn=>fn({matches}))};
+  return {world:context.__test,context,element,storage,options,pending,click:(x,y)=>listeners.click({clientX:rectangle.left+x*rectangle.width,clientY:rectangle.top+y*rectangle.height}),key:key=>listeners.keydown({key,repeat:false,preventDefault(){}}),rectangle,frame:value=>{now=value;pending.clear();frame(value);},status,media:matches=>mediaListeners.forEach(fn=>fn({matches})),visibility:hidden=>{document.hidden=hidden;documentListeners.visibilitychange();}};
 }
 function snapshot(w){
   const objects=[...w.cats,...w.balls,...w.flies];
@@ -61,7 +71,8 @@ function run(){
   const sim=makeSimulation(html);sim.key('ArrowRight');sim.key('Enter');
   assert.equal(sim.world.balls.at(-1).x,134);
   sim.key(' ');const time=sim.world.getTime();sim.frame(100);assert.equal(sim.world.getTime(),time);
-  sim.key(' ');sim.frame(116);assert(sim.world.getTime()>time);
+  // A simulation step is 16.67 ms; use a complete frame after resuming.
+  sim.key(' ');sim.frame(117);assert(sim.world.getTime()>time);
   sim.media(true);const paused=sim.world.getTime();sim.frame(132);assert.equal(sim.world.getTime(),paused);
   console.log('PASS keyboard aim, throw, pause/resume and reduced motion');
 }

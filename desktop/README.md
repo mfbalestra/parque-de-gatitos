@@ -2,6 +2,8 @@
 
 Una aplicación C# con WPF muestra uno, cuatro u ocho gatos sobre el borde inferior del monitor principal. Caminan, se preparan para saltar, saltan con gravedad, aterrizan, se sientan, se acicalan y duermen. Periódicamente aparece el parque sobre el área de trabajo: los mismos gatos entran, recorren el césped y la estructura, descansan y regresan al escritorio. Usa las ilustraciones y los recortes del parque web. Esta integración nativa no traslada todavía todos los juegos ni las interacciones del navegador.
 
+El [parque web](../README.md) también incluye los ocho ciclos completos, controles de cantidad y FPS, preferencias y visitas programadas. En el navegador la compañía queda dentro de la pestaña; esta app mantiene la superposición sobre otros programas. Las preferencias y mediciones de ambas versiones son independientes.
+
 ## Visitas al parque
 
 La configuración inicial es **cuatro gatos, 30 FPS, 30 minutos de compañía y 5 minutos de estadía**. En **Controles**, elegí la cantidad, la fluidez, «Compañía» (1 a 240 minutos) y «Estadía» (1 a 60), y presioná **Guardar preferencias**. Se aceptan minutos enteros. Los cuatro valores se guardan juntos en `gatitos-settings.json`, junto al ejecutable. La carpeta debe permitir escritura; ante un error, el panel conserva todas las preferencias anteriores. Los archivos antiguos que sólo contienen tiempos conservan esos tiempos y reciben cuatro gatos y 30 FPS.

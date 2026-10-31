@@ -1,0 +1,69 @@
+{
+  "method": "Uniform whole-image reduction to width 896; alpha crop >=32 with one-pixel margin. Native scale multiplied by 0.23; source canvas anchor retained. No limbs redrawn.",
+  "coats": [
+    {
+      "name": "naranja",
+      "source": "desktop/assets/walk-naranja.png",
+      "sourceSha256": "0223db427c2520b78b03258332291bac73e9b25c974561732d4d09f1702ac7e8",
+      "url": "assets/walk-naranja.png",
+      "sha256": "b5514de770f854ed1e642f45a799c26bfa7084ab98c368115f16ca0b339c913a",
+      "bytes": 282212
+    },
+    {
+      "name": "gris",
+      "source": "desktop/assets/walk-gris.png",
+      "sourceSha256": "0fcbc23d9722a91f027bef2c929651c070465a58df6470413c27542a7a788fac",
+      "url": "assets/walk-gris.png",
+      "sha256": "5aac4b038776289e532cbfe97022889932a98733c2c6c8f6d45645fd8c90f992",
+      "bytes": 307974
+    },
+    {
+      "name": "calico",
+      "source": "desktop/assets/walk-calico.png",
+      "sourceSha256": "0b57b77b406a2ee30d31f9ca88511d30ac5f35e93506395f432abf605baa1efe",
+      "url": "assets/walk-calico.png",
+      "sha256": "c38bdb8078dc07d43cf0696ce188eba3f0f7c9c86bdea59a12f033cb9a64ea89",
+      "bytes": 281903
+    },
+    {
+      "name": "negro",
+      "source": "desktop/assets/walk-negro.png",
+      "sourceSha256": "7df0cdc919c0a328053e164e968fdc3c75bf81d8f5237b289ac9427450e5c435",
+      "url": "assets/walk-negro.png",
+      "sha256": "9bb2723a5b8345ec9d0cfb50adad116db9e6d90aec516780f324e45ac17c4c6a",
+      "bytes": 247821
+    },
+    {
+      "name": "blanco",
+      "source": "desktop/assets/walk-blanco.png",
+      "sourceSha256": "c66629b37f89db47ee3608e73923e3b9c09fba7bc55c83f9075f12e047589b6a",
+      "url": "assets/walk-blanco.png",
+      "sha256": "03c078c5fe17bd87f5d11777062f3bbb4c850bed2ea596b993d1f7569fe864c9",
+      "bytes": 265886
+    },
+    {
+      "name": "tuxedo",
+      "source": "desktop/assets/walk-tuxedo.png",
+      "sourceSha256": "e4890993931ea90125fe41b6abc94628ac987fee5ed5591a697498cbc3f7b293",
+      "url": "assets/walk-tuxedo.png",
+      "sha256": "34baadf1b8219b561a790abbb8d19f32ae5d2f4dbb92c4b7d762277455d5ed19",
+      "bytes": 260315
+    },
+    {
+      "name": "siames",
+      "source": "desktop/assets/walk-siames.png",
+      "sourceSha256": "256655317c21314f124a86d7ac0456161b67dd099a68c28269e3c29801a5374d",
+      "url": "assets/walk-siames.png",
+      "sha256": "de4b8015e1cf96d419f036987583098134a0e9e4fe5aa021c220c633d461700e",
+      "bytes": 274174
+    },
+    {
+      "name": "marron",
+      "source": "desktop/assets/walk-marron.png",
+      "sourceSha256": "3dff3b2feb23f6bb0bebf7cc1c61ada16220416f2286a6cc460fc5302ddfeb01",
+      "url": "assets/walk-marron.png",
+      "sha256": "1e9e40bdbcf177605f900d136874f1cb05b89dc8fa89f11abad25196f6f49060",
+      "bytes": 298803
+    }
+  ]
+}
