@@ -24,9 +24,21 @@ La compañía funciona **dentro de esta pestaña**. Una página normal no coloca
 
 **Guardar preferencias** conserva los valores juntos en el almacenamiento local de este navegador y de esta dirección. No envía datos ni modifica la configuración de la app de Windows. El ciclo mantiene el tiempo ya transcurrido: si el nuevo límite ya venció, la transición empieza al continuar. Los valores inválidos se señalan junto a los campos; si el navegador no permite guardar, se informa el error y siguen aplicadas las preferencias anteriores. Una configuración guardada ilegible vuelve a los valores iniciales con un aviso. Cerrar y volver a abrir la página inicia una nueva estadía en el parque con las preferencias guardadas.
 
+## Ritmo tranquilo y piloto naranja
+
+Cada gato elige su próxima actividad con probabilidades que dependen de su energía, el lugar y lo que hizo recién. Los tiempos y las elecciones varían entre gatos y entre sesiones. No hay una secuencia global de caminar, saltar y dormir. Los encuentros sí tienen fases coordinadas de acercamiento, contacto y separación para que el movimiento sea comprensible.
+
+Las siestas duran de uno a tres minutos; observar sentado, de 20 a 60 segundos; el aseo, de 15 a 30 segundos. Los paseos buscan un destino cercano. Después de una pelea de juego, ambos descansan sentados al menos 30 segundos. Las visitas al parque y las acciones del usuario pueden cambiar la actividad; las invitaciones autónomas respetan a los gatos que están durmiendo o completando un descanso.
+
+El ritmo se aplica a los ocho pelajes. Las nuevas poses de amasar, acomodarse, frotarse, dormir juntos y jugar con las patas están limitadas al naranja mientras se evalúa el piloto. El amasado en el parque busca una manta libre; durante la compañía puede hacerlo donde está. Los encuentros requieren dos naranjas disponibles, de modo que no aparecen entre los otros pelajes todavía.
+
+Para inspeccionarlos, abrí `index.html?orange-preview=1` desde el servidor local: crea cuatro naranjas independientes y no guarda preferencias. La muestra local en `.local/disenos/ritmo-convivencia/index.html` permite pedir cada interacción y luego «Dejarlos elegir». Pedir una demostración es un estímulo explícito; no representa la frecuencia autónoma de esa conducta. La aceptación visual del naranja sigue pendiente antes de extender estos dibujos a los demás pelajes.
+
+Las duraciones, pesos iniciales, separaciones de contacto y límites de parejas viven en `behavior-profile.js`, que Windows también lee como datos. Las dos simulaciones conservan sus movimientos y juegos propios; no prometen la misma secuencia de decisiones. Las nuevas imágenes completas y sus recortes se documentan en [ORANGE-ART.md](assets/ORANGE-ART.md).
+
 ## Abrir una copia local
 
-Descargá la carpeta completa. Conservá junto a `index.html` los archivos `art-data.js`, `walk-data.js`, `scene-art.js`, `park-details.js`, `park-cycle.js`, `web-controls.js`, `web-controls.css` y la carpeta `assets`. Son recursos relativos y no necesitan servicios externos. Para desarrollo, serví esa carpeta con un servidor HTTP local. La apertura directa desde disco depende de las reglas de almacenamiento del navegador; la comprobación de entrega usa HTTP y GitHub Pages.
+Descargá la carpeta completa. Conservá junto a `index.html` los archivos `art-data.js`, `walk-data.js`, `orange-art-data.js`, `scene-art.js`, `behavior-profile.js`, `cat-behavior.js`, `park-details.js`, `park-cycle.js`, `web-controls.js`, `web-controls.css` y la carpeta `assets`. Son recursos relativos y no necesitan servicios externos. Para desarrollo, serví esa carpeta con un servidor HTTP local. La apertura directa desde disco depende de las reglas de almacenamiento del navegador; la comprobación de entrega usa HTTP.
 
 ## Cómo está hecho
 
@@ -50,12 +62,14 @@ node tests/motion.cjs
 node tests/art.cjs
 node tests/walk-web.cjs
 node tests/web-controls.cjs
+node tests/behavior.cjs
+node tests/orange-art.cjs
 ```
 
 La primera prueba verifica las actividades, las coordenadas del puntero, el límite de ovillos y el teclado. La segunda comprueba los cinco disparadores de salto, la continuidad, la gravedad, las fases, el aterrizaje y el apoyo estable al rascar, a distintas frecuencias de actualización y durante recorridos prolongados. La tercera comprueba los ocho pelajes, los recortes, la transparencia declarada por los PNG, el apoyo, la inversión de dirección y el respaldo ante recursos inválidos.
 
 Las nuevas pruebas de caminata comprueban los 64 cuadros, la escala uniforme, el anclaje, la fase periódica por distancia y la procedencia de los recursos. Las de controles verifican preferencias, transiciones, suspensión y separación entre simulación y frecuencia de dibujo. La comprobación visual y de teclado se realiza además sobre la página completa, con el diálogo abierto y cerrado, las transiciones y el movimiento reducido.
 
-La referencia original de `5cf72af` permanece intacta. `node tests/simulation.cjs --historical` conserva la comparación exacta anterior y falla de manera esperada porque el propietario pidió cambiar los saltos; su digest no se regeneró para aceptar el nuevo movimiento.
+La referencia original de `5cf72af` permanece intacta. `node tests/simulation.cjs --historical` conserva la comparación exacta anterior y falla de manera esperada porque el propietario pidió cambiar los saltos y, después, reemplazar el ritmo por decisiones contextuales. Su digest no se regeneró para aceptar los cambios. Las actividades físicas y el recorrido del gimnasio se verifican con escenarios explícitos: una traza breve al azar ya no garantiza que aparezcan todas cuando las siestas duran minutos.
 
 Al cambiar ilustraciones o recortes, mirá además las poses en movimiento, ambos sentidos, la entrada a la caja y el tobogán. Al cambiar las reglas de juego, no reemplaces la referencia de comportamiento sin acordar primero el nuevo resultado esperado. Este README cubre la ejecución y el dibujo del parque; mantenelo junto con esos cambios.

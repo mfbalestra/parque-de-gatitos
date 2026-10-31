@@ -53,9 +53,9 @@ internal sealed class ParkCycle
     public int Visits { get; private set; }
     private bool revisit;
     private double[] home = Array.Empty<double>();
-    private int[] route = Array.Empty<int>();
-    private double[] rest = Array.Empty<double>();
-    private static readonly (double x, double y)[] Gym = { (136, 118), (146, 110), (157, 102), (173, 94), (188, 78), (200, 78), (237, 118) };
+    private readonly CatBehavior behavior = new();
+    public void CancelInteractions() => behavior.Cancel();
+    public void Demo(CatMotion[] cats, string action) => behavior.Demo(cats, action);
 
     public ParkCycle(ParkSettings settings)
     {
@@ -72,12 +72,13 @@ internal sealed class ParkCycle
     {
         if (Phase is ParkPhase.Leaving or ParkPhase.Disappearing) { revisit = true; return; }
         if (Expanded) return;
+        behavior.Cancel();
         home = cats.Select(c => c.X / width).ToArray();
-        route = new int[cats.Length]; rest = new double[cats.Length];
         SetPhase(ParkPhase.Appearing); Visits++;
     }
     public void Return()
     {
+        behavior.Cancel();
         revisit = false;
         if (Phase is ParkPhase.Appearing or ParkPhase.Entering or ParkPhase.Visiting) SetPhase(ParkPhase.Leaving);
     }
@@ -104,7 +105,7 @@ internal sealed class ParkCycle
         switch (Phase)
         {
             case ParkPhase.Desktop:
-                foreach (var cat in cats) cat.Advance(dt, width);
+                behavior.Advance(dt, cats, width, height, false);
                 if (Elapsed >= Settings.CompanionMinutes * 60) Visit(cats, width);
                 break;
             case ParkPhase.Appearing:
@@ -119,7 +120,7 @@ internal sealed class ParkCycle
                 if (arrived) SetPhase(ParkPhase.Visiting);
                 break;
             case ParkPhase.Visiting:
-                for (int i = 0; i < cats.Length; i++) AnimateVisitor(cats[i], i, dt, width, height);
+                behavior.Advance(dt, cats, width, height, true);
                 if (Elapsed >= Settings.StayMinutes * 60) Return();
                 break;
             case ParkPhase.Leaving:
@@ -147,19 +148,4 @@ internal sealed class ParkCycle
 
     private static double GroundX(int i, double width) => Math.Clamp(width * (.12 + i * .105), 70, Math.Max(70, width - 70));
     private static double GroundDepth(int i, double height) => height * (.055 + i % 3 * .055);
-    private void AnimateVisitor(CatMotion cat, int i, double dt, double width, double height)
-    {
-        if (rest[i] > 0)
-        {
-            rest[i] -= dt; cat.Rest(SceneTime, i % 3); return;
-        }
-        int step = route[i] % 9;
-        bool gym = i % 3 == 0 && step >= 1 && step <= 7;
-        double x = gym ? Gym[step - 1].x / 256 * width : GroundX((i + step) % 8, width);
-        double depth = gym ? height - 7 - Gym[step - 1].y / 144 * height : GroundDepth(i, height);
-        if (cat.MoveTo(x, depth, dt, width, gym && step > 1 && step < 7))
-        {
-            route[i]++; rest[i] = 3 + i % 3 * 2;
-        }
-    }
 }

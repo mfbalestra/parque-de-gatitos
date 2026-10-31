@@ -27,6 +27,8 @@ internal sealed class OverlayWindow : Window
     private bool hidden;
     private SettingsPanel? panel;
     private readonly ParkCycle cycle;
+    private readonly bool orangePreview;
+    private string? pendingDemo;
     private readonly ParkScene parkScene = new();
     private bool expanded;
     private int statusSecond = -1;
@@ -48,10 +50,13 @@ internal sealed class OverlayWindow : Window
         ShowInTaskbar = false; ShowActivated = false; Topmost = true;
         Focusable = false; IsHitTestVisible = false;
         var saved = ParkSettings.Load();
-        var settings = saved with { Cats = options.Cats ?? saved.Cats, Fps = options.Fps ?? saved.Fps };
+        orangePreview = options.OrangePreview;
+        var settings = saved with { Cats = orangePreview ? 4 : options.Cats ?? saved.Cats, Fps = options.Fps ?? saved.Fps };
         cycle = new ParkCycle(settings); pacer = new FramePacer(settings.Fps);
         surface = new CatSurface(catalog, cycle, parkScene); Content = surface;
         Place(); SetCount(settings.Cats); paused = options.Paused;
+        if (options.ParkNow) pendingDemo = options.DemoAction;
+        else if (options.DemoAction != null) cycle.Demo(surface.Cats, options.DemoAction);
         tray = new Forms.NotifyIcon { Icon = System.Drawing.SystemIcons.Information, Text = "Gatitos — clic derecho para opciones" };
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add("Controles", null, (_, _) => OpenPanel());
@@ -85,7 +90,7 @@ internal sealed class OverlayWindow : Window
         var work = SystemParameters.WorkArea;
         Left = work.Left; Width = work.Width; Height = cycle.Expanded ? work.Height : 165; Top = work.Bottom - Height;
     }
-    private void OnDisplayChanged(object? sender, PropertyChangedEventArgs args) { if (args.PropertyName == nameof(SystemParameters.WorkArea)) Place(); }
+    private void OnDisplayChanged(object? sender, PropertyChangedEventArgs args) { if (args.PropertyName == nameof(SystemParameters.WorkArea)) { cycle.CancelInteractions(); Place(); } }
 
     private static nint FilterMessages(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
     {
@@ -99,7 +104,8 @@ internal sealed class OverlayWindow : Window
         if (!Options.ValidCount(count)) throw new ArgumentOutOfRangeException(nameof(count));
         if (cycle.Expanded || count == CatCount) return;
         catalog.Load(count); CatCount = count;
-        surface.Cats = Enumerable.Range(0, count).Select(i => new CatMotion(i, count, Width)).ToArray();
+        cycle.CancelInteractions();
+        surface.Cats = Enumerable.Range(0, count).Select(i => new CatMotion(i, count, Width, orangePreview ? 0 : null)).ToArray();
         surface.InvalidateVisual();
         UpdatePanel();
     }
@@ -146,6 +152,7 @@ internal sealed class OverlayWindow : Window
 
     private string? SaveSettings(ParkSettings settings)
     {
+        if (orangePreview) return "La vista de gatos naranjas es temporal y no guarda preferencias.";
         if (!settings.Valid) return "Revisá la cantidad, la fluidez y los rangos de minutos.";
         if (cycle.Expanded && settings.Cats != CatCount) return "La cantidad se cambia al volver al escritorio. Las preferencias aplicadas siguen iguales.";
         try
@@ -155,11 +162,11 @@ internal sealed class OverlayWindow : Window
             if (settings.Cats != CatCount)
             {
                 catalog.Load(settings.Cats);
-                replacement = Enumerable.Range(0, settings.Cats).Select(i => new CatMotion(i, settings.Cats, Width)).ToArray();
+                replacement = Enumerable.Range(0, settings.Cats).Select(i => new CatMotion(i, settings.Cats, Width, orangePreview ? 0 : null)).ToArray();
             }
             settings.Save();
             cycle.Configure(settings);
-            if (replacement != null) { surface.Cats = replacement; CatCount = settings.Cats; surface.InvalidateVisual(); }
+            if (replacement != null) { cycle.CancelInteractions(); surface.Cats = replacement; CatCount = settings.Cats; surface.InvalidateVisual(); }
             if (pacer.Target != settings.Fps) pacer.Configure(settings.Fps);
             UpdatePanel(); return null;
         }
@@ -183,6 +190,10 @@ internal sealed class OverlayWindow : Window
         {
             double dt = Math.Min(.1, elapsed);
             cycle.Advance(dt, surface.Cats, Width, SystemParameters.WorkArea.Height); elapsed -= dt;
+        }
+        if (pendingDemo != null && cycle.Phase == ParkPhase.Visiting)
+        {
+            cycle.Demo(surface.Cats, pendingDemo); pendingDemo = null;
         }
         if (expanded != cycle.Expanded) SyncScene();
         if ((int)now != statusSecond) { statusSecond = (int)now; UpdatePanel(); }

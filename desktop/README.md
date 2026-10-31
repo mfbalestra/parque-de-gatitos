@@ -18,6 +18,16 @@ El parque tapa visualmente los programas, pero los clics siguen llegando a lo qu
 
 Para ver la escena directamente al iniciar: `Gatitos.Windows.exe --cats 8 --panel --park-now`. El paquete «Parque ahora» usa esta opción; el inicio normal respeta el intervalo configurado.
 
+## Ritmo tranquilo y demostración naranja
+
+El escritorio ya no repite un ciclo fijo de 20 segundos ni un salto obligatorio. Cada gato conserva energía, una preferencia de sociabilidad y actividad reciente. Elige entre acciones posibles mediante probabilidades, con tiempos independientes. Las siestas duran 60–180 segundos, estar sentado 20–60 y el aseo 15–30. El parque permite además una salida a la estructura, cuyos apoyos se recorren en orden por continuidad física; elegir cuándo ir allí no sigue un guion.
+
+El ritmo tranquilo se aplica a todos los pelajes. Amasar, acomodarse y los encuentros nuevos usan imágenes completas sólo del naranja. Los encuentros reservan a dos gatos, los acercan, coordinan el contacto y los separan antes de descansar. Después de jugar con las patas, ambos permanecen sentados al menos 30 segundos. No invitan a gatos que estén durmiendo. Durante el parque, amasar busca una manta libre y empieza al llegar.
+
+La prueba visual se abre con `Gatitos.Windows.exe --orange-preview --panel`. Para pedir un encuentro puntual, usá también `--demo-action rub`, `cuddle`, `spar`, `knead` o `settle`. Con `--park-now`, espera la llegada al parque antes de comenzar la acción elegida. `--fps 30` o `--fps 60` cambia la fluidez de esa ejecución. La demostración crea cuatro naranjas independientes y bloquea el guardado de preferencias; salir no altera tu configuración habitual. La extensión del arte a los otros siete pelajes espera la aceptación del propietario.
+
+`CatBehavior.cs` elige las acciones y coordina las parejas; `CatMotion.cs` conserva los desplazamientos y los saltos. `behavior-profile.js` comparte duraciones, pesos iniciales y límites con la web, sin ejecutar JavaScript. `orange-art-data.js` y `assets/acciones-naranja.png` son necesarios junto al programa. Las imágenes y su procedencia se describen en [ORANGE-ART.md](../assets/ORANGE-ART.md).
+
 ## Usarla
 
 Abrí `Gatitos.Windows.exe`. Aparecen los gatos según tus preferencias guardadas y un icono de información en la bandeja de Windows, junto al reloj; puede estar entre los iconos ocultos. El clic derecho ofrece **Controles**, **Pausar/Reanudar**, **Ocultar/Mostrar**, **Ir al parque ahora**, **Volver al escritorio** y **Salir**. El doble clic en el icono oculta o muestra los gatos.

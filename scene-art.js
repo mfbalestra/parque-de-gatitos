@@ -17,6 +17,8 @@ window.createParkArt=function(data){
   }
   const walking=window.PARK_WALK;
   if(walking)walking.coats.forEach((coat,i)=>preload('walk-'+i,coat.url));
+  const orange=window.PARK_ORANGE;
+  if(orange)preload('orange-actions',orange.url);
   // Logical body envelopes are independent of the pixel density of each sheet.
   // Optional anchorX/Y can register a hand-reviewed crop to its rear paws.
   const envelopes={standing:[23,17],walkA:[23,17],walkB:[23,17],sit:[23,18],sleep:[23,11],belly:[23,13],groomA:[23,18],groomB:[23,18],stretch:[25,17],scratch:[23,21],scratchA:[23,21],scratchB:[23,21],crouch:[23,13],jumpRise:[24,17],jumpTuck:[23,14],jumpFall:[24,17],landing:[23,13]};
@@ -24,6 +26,13 @@ window.createParkArt=function(data){
   const sourceFacing={sit:-1,sleep:-1,belly:-1,groomA:-1,groomB:-1};
   const sizes=[1,0.96,1.04,0.98,1.05,0.95,1.02,1];
   function pose(actor,name){
+    if(actor.artIndex===0&&name==='sleep'&&orange)name='settle3';
+    if(actor.artIndex===0&&orange?.frames[name]){
+      const entry=images.get('orange-actions'),rect=orange.frames[name];
+      if(entry?.ready)return {image:entry.image,rect,width:rect.w*orange.scale,height:rect.h*orange.scale,
+        facing:1,anchorX:rect.anchorX,anchorY:rect.anchorY};
+    }
+    if(/^(knead|settle|rub|spar)[0-3]$/.test(name))name=name.startsWith('settle')?'sleep':'sit';
     if(/^walk[0-7]$/.test(name)){
       const frame=Number(name.slice(4)),index=actor.artIndex%8;
       const coat=walking&&walking.coats[index],entry=images.get('walk-'+index),rect=coat&&coat.frames[frame];

@@ -27,6 +27,8 @@ internal sealed class SpriteCatalog
 
     public void Load(int count)
     {
+        if (!sprites.ContainsKey((0, "knead0")))
+            foreach (var sprite in OrangeArt.Load()) sprites.Add((0, sprite.Key), sprite.Value);
         for (int coat = 0; coat < count; coat++)
         {
             foreach (string name in Names)
@@ -39,7 +41,7 @@ internal sealed class SpriteCatalog
         }
     }
 
-    public Sprite Get(int coat, string name) => sprites[(coat, name)];
+    public Sprite Get(int coat, string name) => sprites[(coat, coat == 0 && name == "sleep" ? "settle3" : name)];
 
     private Sprite Create(int coat, string name)
     {

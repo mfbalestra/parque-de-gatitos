@@ -46,6 +46,27 @@ console.log('PASS five jump kinds at four frame rates: impulse, gravity, travel,
 }
 console.log('PASS scratch alternates forelegs while body and support remain fixed');
 
+// Longer rests and weighted selection invalidate the old expectation that a
+// 600-second random trace must trigger every jump. Exercise each trigger from
+// a deliberate setup while keeping the trajectory checks above and below.
+for(const kind of ['gym','yarn','butterfly','play','box']){
+  const {world:w}=makeSimulation(html),c=w.cats[0];
+  Object.assign(c,{x:134,y:118,z:0,vz:0,motion:null,onS:false,at:0,tm:10,an:0});
+  if(kind==='gym')Object.assign(c,{st:'gym',onS:true,gi:0,gp:0,pt:0});
+  if(kind==='yarn'||kind==='butterfly'){
+    const target=kind==='yarn'?w.balls[0]:w.flies[0];
+    target.x=c.x;target.y=kind==='yarn'?c.y:c.y-26;Object.assign(c,{st:'chase',tgt:target});
+  }
+  if(kind==='box'){w.box.cat=c;Object.assign(c,{st:'box',at:1,tm:-1});}
+  if(kind==='play')w.beginJump(c,c.x+7,c.y,0,6,'play');
+  else w.updCat(c,1/60);
+  assert.equal(c.motion?.kind,kind,'explicit trigger: '+kind);
+  const phases=new Set();let previous=[c.x,c.y,c.z];
+  while(c.motion){phases.add(c.motion.phase);w.advanceJump(c,1/60);assert(Math.hypot(c.x-previous[0],c.y-previous[1],c.z-previous[2])<3,'continuous '+kind);previous=[c.x,c.y,c.z];}
+  assert.deepEqual([...phases].sort(),['air','landing','prepare','recover']);
+}
+console.log('PASS explicit triggers and continuous jump phases');
+
 for(const throws of [false,true]){
   const sim=makeSimulation(html),w=sim.world;
   assert.deepEqual(Array.from(w.cats,c=>c.artIndex),[0,1,2,3,4,5,6,7]);
@@ -62,7 +83,5 @@ for(const throws of [false,true]){
     });
     assert(w.balls.length<=7);
   }
-  for(const kind of ['gym','yarn','butterfly','play','box'])assert(kinds.has(kind),'reachable jump: '+kind);
-  assert.equal(phases.size,4);
 }
-console.log('PASS 20 simulated minutes: all five jump triggers, all phases, eight identities, finite/continuous state, bounded balls');
+console.log('PASS 20 simulated minutes: eight identities, finite/continuous state and bounded balls');

@@ -35,13 +35,13 @@ internal static class Program
     }
 }
 
-internal sealed record Options(int? Cats, bool Paused, bool Probe, bool SelfTest, bool Panel, string? Output, bool ParkNow, int? Fps = null)
+internal sealed record Options(int? Cats, bool Paused, bool Probe, bool SelfTest, bool Panel, string? Output, bool ParkNow, int? Fps = null, bool OrangePreview = false, string? DemoAction = null)
 {
     public static bool ValidCount(int count) => ParkSettings.ValidCount(count);
 
     public static Options Parse(string[] args)
     {
-        int? cats = null, fps = null; bool paused = false, probe = false, selfTest = false, panel = false, parkNow = false; string? output = null;
+        int? cats = null, fps = null; bool paused = false, probe = false, selfTest = false, panel = false, parkNow = false, orangePreview = false; string? output = null, demoAction = null;
         for (int i = 0; i < args.Length; i++)
         {
             switch (args[i])
@@ -51,6 +51,8 @@ internal sealed record Options(int? Cats, bool Paused, bool Probe, bool SelfTest
                 case "--paused": paused = true; break;
                 case "--panel": panel = true; break;
                 case "--park-now": parkNow = true; break;
+                case "--orange-preview": orangePreview = true; break;
+                case "--demo-action" when i + 1 < args.Length && Array.IndexOf(new[] { "knead", "settle", "rub", "cuddle", "spar" }, args[i + 1]) >= 0: demoAction = args[++i]; orangePreview = true; break;
                 case "--probe": probe = true; break;
                 case "--self-test": selfTest = true; break;
                 case "--output" when i + 1 < args.Length: output = Path.GetFullPath(args[++i]); break;
@@ -59,6 +61,6 @@ internal sealed record Options(int? Cats, bool Paused, bool Probe, bool SelfTest
         }
         if ((probe || selfTest) && output == null) throw new ArgumentException("La prueba necesita --output archivo.json.");
         if (probe && selfTest || paused && output != null && !probe) throw new ArgumentException("Combinación de opciones incompatible.");
-        return new(cats, paused, probe, selfTest, panel, output, parkNow, fps);
+        return new(cats, paused, probe, selfTest, panel, output, parkNow, fps, orangePreview, demoAction);
     }
 }

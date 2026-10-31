@@ -5,11 +5,13 @@ int assertions = 0;
 void Check(bool value, string reason) { assertions++; if (!value) throw new Exception(reason); }
 SettingsContracts.Run(Check);
 WalkContracts.Run(Check);
+BehaviorContracts.Run(Check);
 foreach (double dt in new[] { .01, 1.0 / 30, 1.0 / 60 })
 foreach (int width in new[] { 800, 1920, 3840 })
 {
     var cat = new CatMotion(0, 1, width);
-    for (int i = 0; i < 150; i++) cat.Advance(.05, width);
+    cat.MoveTo(cat.X + 30, 50, .01, width, true);
+    cat.MoveTo(cat.X + 30, 50, .2, width, true);
     Check(cat.Height > 0, "The fixture must trigger a visit during an airborne jump.");
     double height = cat.Height, x = cat.X;
     var cycle = new ParkCycle(new());
