@@ -265,11 +265,24 @@ internal sealed class CatBehavior
             }
         }
     }
+    internal double GroupFactor(string action, double quietFraction, double energy)
+    {
+        var rule = Data.GetProperty("groupBalance");
+        double threshold = rule.GetProperty("quietThreshold").GetDouble();
+        double floor = rule.GetProperty("minimumEnergyInfluence").GetDouble();
+        double pressure = Math.Clamp((quietFraction - threshold) / (1 - threshold), 0, 1) *
+            (floor + (1 - floor) * Math.Clamp(energy, 0, 1));
+        double multiplier = rule.GetProperty("multipliers").TryGetProperty(action, out var value) ? value.GetDouble() : 1;
+        return 1 + (multiplier - 1) * pressure;
+    }
     private void Choose(int i, double width, double height, bool park)
     {
         var s = states[i]; var weights = Data.GetProperty(park ? "weightsPark" : "weightsCompanion");
         var names = new[] { "sleep", "sit", "groom", "wander", "knead", "social", "environment" };
         double[] values = new double[names.Length];
+        double quiet = states.Length > 1 ? states.Where((other, j) => j != i &&
+            ((other.RestReady && (other.Action is "sleep" or "sit" or "settle")) ||
+             (other.Action == "cuddle" && other.Contact && !other.Exiting))).Count() / (double)(states.Length - 1) : 0;
         int pairCount = states.Count(x => x.Partner >= 0 && x.Action == "spar") / 2;
         int limit = Data.GetProperty(park ? (cats.Length >= 8 ? "pairLimitParkEight" : "pairLimitParkFour") : "pairLimitCompanion").GetInt32();
         int[] partners = Enumerable.Range(0, cats.Length).Where(j => j != i && cats[j].Coat == 0 && states[j].Partner < 0 && !states[j].Gym && (states[j].Remaining <= 0 || states[j].Action == "wander") && states[j].Cooldown <= 0 &&
@@ -285,6 +298,7 @@ internal sealed class CatBehavior
             if (names[n] == "wander") values[n] *= .5 + s.Energy;
             if (names[n] == "social" || names[n] == "environment") values[n] *= .5 + s.Energy;
             if (names[n] == "social") values[n] *= .5 + s.Sociability;
+            values[n] *= GroupFactor(names[n], quiet, s.Energy);
             if (names[n] == "knead" && cats[i].Coat != 0) values[n] = 0;
             if (names[n] == "environment" && s.Cooldown > 0) values[n] = 0;
             if (names[n] == "social" && (cats[i].Coat != 0 || partners.Length == 0 || s.Cooldown > 0 || pairCount >= limit)) values[n] = 0;

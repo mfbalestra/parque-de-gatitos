@@ -28,6 +28,8 @@ La compañía funciona **dentro de esta pestaña**. Una página normal no coloca
 
 Cada gato elige su próxima actividad con probabilidades que dependen de su energía, el lugar y lo que hizo recién. Los tiempos y las elecciones varían entre gatos y entre sesiones. No hay una secuencia global de caminar, saltar y dormir. Los encuentros sí tienen fases coordinadas de acercamiento, contacto y separación para que el movimiento sea comprensible.
 
+También considera al grupo: si la mayoría de sus compañeros está quieta, aumenta gradualmente la probabilidad de pasear, asearse, explorar o interactuar en su próxima elección. El efecto es menor si está cansado y desaparece cuando ya hay suficiente actividad. Puede elegir descansar de todos modos; no hay una cantidad obligatoria de gatos en movimiento ni se despierta a quienes ya duermen. Un gato solo conserva su ritmo individual.
+
 Las siestas duran de uno a tres minutos; observar sentado, de 20 a 60 segundos; el aseo, de 15 a 30 segundos. Los paseos buscan un destino cercano. Después de una pelea de juego, ambos descansan sentados al menos 30 segundos. Las visitas al parque y las acciones del usuario pueden cambiar la actividad; las invitaciones autónomas respetan a los gatos que están durmiendo o completando un descanso.
 
 Antes de un descanso individual, cada gato reserva un espacio separado de los demás y camina hasta allí. El tiempo de descanso empieza al llegar. Las zonas de paso, la rampa y su salida quedan fuera de los lugares de descanso; los encuentros intencionales de pareja conservan su contacto. Puede haber cruces breves durante el desplazamiento: la reserva evita la superposición prolongada al quedarse quietos. Si las mantas están ocupadas, busca un lugar para sentarse. «Dejarlos elegir» respeta a quien todavía recorre la estructura; al volver a la compañía también termina la bajada por la rampa antes de salir.
@@ -67,6 +69,7 @@ node tests/web-controls.cjs
 node tests/behavior.cjs
 node tests/orange-art.cjs
 node tests/spatial.cjs
+node tests/group.cjs
 ```
 
 La primera prueba verifica las actividades, las coordenadas del puntero, el límite de ovillos y el teclado. La segunda comprueba los cinco disparadores de salto, la continuidad, la gravedad, las fases, el aterrizaje y el apoyo estable al rascar, a distintas frecuencias de actualización y durante recorridos prolongados. La tercera comprueba los ocho pelajes, los recortes, la transparencia declarada por los PNG, el apoyo, la inversión de dirección y el respaldo ante recursos inválidos.

@@ -6,6 +6,20 @@ internal static class BehaviorContracts
 {
     public static void Run(Action<bool, string> check)
     {
+        var groupRules = new CatBehavior(19);
+        foreach (int energy in Enumerable.Range(0, 11))
+        foreach (int quiet in Enumerable.Range(0, 20))
+        foreach (string action in new[] { "sleep", "sit", "wander", "groom", "knead", "social", "environment" })
+        {
+            double a = groupRules.GroupFactor(action, quiet / 20.0, energy / 10.0);
+            double b = groupRules.GroupFactor(action, (quiet + 1) / 20.0, energy / 10.0);
+            check(a > 0 && b > 0, "Group balancing cannot forbid activities or impose a fixed choice.");
+            check(action is "sleep" or "sit" ? b <= a + 1e-10 : b >= a - 1e-10,
+                "More quiet peers must favor activity over an additional long rest.");
+            if (quiet <= 10) check(a == 1, "An active group needs no correction.");
+        }
+        check(groupRules.GroupFactor("wander", 1, 1) > groupRules.GroupFactor("wander", 1, 0),
+            "Fatigue must reduce the encouragement to move.");
         foreach (bool park in new[] { false, true })
         foreach (int count in new[] { 1, 4, 8 })
         foreach (int seed in new[] { 2, 7, 19 })

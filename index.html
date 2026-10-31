@@ -246,7 +246,7 @@ function choose(c){
  const eligible=['sleep','sit','groom','wander'];if(c.artIndex===0)eligible.push('knead','settle');
  const partners=cats.filter(o=>o!==c&&o.artIndex===0&&available(o)&&o.socialCooldown<=0);
  if(c.artIndex===0&&c.socialCooldown<=0&&partners.length)eligible.push('social');if(scene==='park'&&c.cooldown<=0)eligible.push('environment');
- let action=behavior.select(c,scene,eligible);c.recent=action;if(action==='knead'&&behavior.random(c)<.35)action='settle';
+ let action=behavior.select(c,scene,eligible,cats.filter(o=>o!==c));c.recent=action;if(action==='knead'&&behavior.random(c)<.35)action='settle';
  if(action==='social'){const partner=partners[Math.floor(behavior.random(c)*partners.length)],actions=c.cooldown<=0&&partner.cooldown<=0?['rub','cuddle','spar']:['rub','cuddle'];if(reserve(c,partner,actions[Math.floor(behavior.random(c)*actions.length)]))return;}
  if(action==='environment'){const choices=['gym','scratch','box','ball','fly','roll','stretch'];const choice=choices[Math.floor(behavior.random(c)*choices.length)];
   if(choice==='gym'&&cats.filter(o=>o.st==='gym').length<3){c.st='gym';c.onS=false;c.pt=0;c.tm=20;return;}
