@@ -163,11 +163,14 @@ const gymE={kind:'gym',y:YB},box={kind:'box',x:58,y:134,cat:null};
 function drawGym(){if(window.PARK_DETAILS){window.PARK_DETAILS.drawGym(g,t);return}g.drawImage(gym,GX,YB-GB);const a=Math.sin(t*2.2)*0.5;
 for(let i=1;i<8;i++)px(g,185+Math.sin(a)*i,YB-37+Math.cos(a)*i,'#5f5e5a');const ex=Math.round(185+Math.sin(a)*8),ey=Math.round(YB-37+Math.cos(a)*8);disc(g,ex,ey+1,2,'#e8577c');px(g,ex-1,ey,'#f7b3c6')}
 function drawBox(o){const x=Math.round(o.x),y=Math.round(o.y);
+const details=window.PARK_DETAILS;
+if(details?.drawBoxBack)details.drawBoxBack(g,x,y);else{
 shadow(x,y,24,4,.2);
 g.fillStyle='#d9a35f';g.fillRect(x-9,y-16,18,3);g.fillStyle='#7a4a1e';g.fillRect(x-9,y-16,18,1);
-g.fillStyle='#7a4a1e';g.fillRect(x-11,y-13,22,4);g.fillStyle='#5a3414';g.fillRect(x-10,y-12,20,3);
+g.fillStyle='#7a4a1e';g.fillRect(x-11,y-13,22,4);g.fillStyle='#5a3414';g.fillRect(x-10,y-12,20,3);}
 const c=o.cat;if(c&&c.at&&c.st==='box'){const fk=Math.floor(c.an*0.7)%3?'sit':'groomA',p=art&&art.pose(c,fk);
 if(p)art.draw(g,p,x,y,c.dir);else{const s=c.fr[fk][c.dir>0?0:1];g.drawImage(s,Math.round(x-s.width/2),y-6-s.height)}}
+if(details?.drawBoxFront){details.drawBoxFront(g,x,y);return;}
 g.fillStyle='#c98a4a';g.fillRect(x-11,y-10,22,10);g.fillStyle='#7a4a1e';g.fillRect(x-11,y-10,22,1);g.fillRect(x-11,y-10,1,10);g.fillRect(x+10,y-10,1,10);g.fillRect(x-11,y-1,22,1);
 g.fillStyle='#e0b070';g.fillRect(x-4,y-9,8,8);g.fillStyle='#d9a35f';g.fillRect(x-15,y-12,4,2);g.fillRect(x+11,y-12,4,2)}
 function newCat(x,y){const coat=pick(coats),wd=RI(0,3),salt=RI(0,20),fr={};

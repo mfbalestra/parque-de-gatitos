@@ -189,6 +189,51 @@
     g.restore();
   }
 
+  function cardboard(g, points, light, dark) {
+    g.beginPath(); points.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath();
+    const shade = g.createLinearGradient(-8, -17, 10, 1);
+    shade.addColorStop(0, light); shade.addColorStop(1, dark);
+    g.fillStyle = shade; g.fill(); g.strokeStyle = '#92714e'; g.lineWidth = .28; g.stroke();
+    g.save(); g.clip();
+    for (let i = 0; i < 46; i++) {
+      const x = ((i * 17) % 61) / 2 - 15, y = ((i * 13) % 37) / 2 - 17;
+      line(g, [[x, y], [x + .4 + (i % 3) * .22, y + .06]], i % 2 ? 'rgba(113,78,43,.18)' : 'rgba(255,239,200,.32)', .12);
+    }
+    g.restore();
+  }
+
+  function drawBoxBack(g, x, y) {
+    shadow(g, x, y + .5, 30, 5, .2);
+    g.save(); g.translate(x, y); g.lineJoin = 'round'; g.lineCap = 'round';
+    cardboard(g, [[-10.4,-12.1],[-9,-16.2],[8.7,-16],[10.5,-12]], '#e2c392', '#bb955f');
+    line(g, [[-8.8,-15.75],[8.5,-15.55]], '#f5deb3', .35);
+    line(g, [[-.3,-15.8],[.2,-12.2]], 'rgba(130,96,58,.28)', .2);
+    rounded(g, -10.8, -12.6, 21.6, 6, .6);
+    const inside = g.createLinearGradient(0,-13,0,-7);
+    inside.addColorStop(0, '#76583f'); inside.addColorStop(1, '#b18b5e');
+    g.fillStyle = inside; g.fill();
+    cardboard(g, [[-10.6,-12],[-15,-10.1],[-13.5,-7.7],[-10.5,-9.5]], '#e5c89b', '#c09b6b');
+    cardboard(g, [[10.4,-12],[15,-10],[13.3,-7.6],[10.3,-9.5]], '#dcc096', '#b48c5d');
+    line(g, [[-10.4,-11.8],[-10.4,-9.6]], '#806043', .3);
+    line(g, [[10.3,-11.8],[10.3,-9.6]], '#806043', .3);
+    g.restore();
+  }
+
+  function drawBoxFront(g, x, y) {
+    g.save(); g.translate(x, y); g.lineJoin = 'round'; g.lineCap = 'round';
+    cardboard(g, [[-10.8,-9.8],[8.8,-9.6],[8.6,-.2],[-10.3,-.5]], '#dfbd88', '#bf965f');
+    cardboard(g, [[8.8,-9.6],[10.8,-10.7],[10.5,-1.5],[8.6,-.2]], '#c5a071', '#a17c50');
+    cardboard(g, [[-10.8,-9.8],[-9.9,-7.9],[8.5,-7.7],[8.8,-9.6]], '#edcf9e', '#d0ac76');
+    line(g, [[-10.3,-9.5],[8.4,-9.3]], '#f7e1b9', .32);
+    line(g, [[-9.8,-7.65],[8.3,-7.45]], 'rgba(110,77,44,.3)', .22);
+    for (let x = -9.7; x < 8.5; x += .65) line(g, [[x,-9.55],[x+.18,-9.25]], '#b48b57', .13);
+    cardboard(g, [[-1.7,-7.8],[.4,-7.75],[.5,-.4],[-1.55,-.45]], '#e4cf9f', '#d4b981');
+    line(g, [[-1.3,-7.4],[-1.2,-1]], 'rgba(255,245,209,.45)', .18);
+    line(g, [[-9.6,-1.1],[-5.8,-.95]], 'rgba(248,220,173,.55)', .25);
+    line(g, [[6.8,-2.7],[7.8,-1.7],[8.4,-1.6]], 'rgba(116,81,46,.25)', .19);
+    g.restore();
+  }
+
   function drawButterfly(g, f, t) {
     g.save(); g.translate(f.x, f.y);
     g.rotate(Math.sin(f.a || 0) * .22);
@@ -219,5 +264,5 @@
     g.restore();
   }
 
-  window.PARK_DETAILS = Object.freeze({ drawGround, drawGym, drawButterfly, shadow });
+  window.PARK_DETAILS = Object.freeze({ drawGround, drawGym, drawButterfly, drawBoxBack, drawBoxFront, shadow });
 })();
