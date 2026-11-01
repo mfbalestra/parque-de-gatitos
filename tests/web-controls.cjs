@@ -98,7 +98,7 @@ console.log('PASS stable 30/60 render cadence across 59.94/60/75/120/144 Hz, tim
 
 {
   const s=makeSimulation(html),el=s.element,w=s.world;
-  el('open-controls').dispatch('click');assert(el('park-controls').open);el('close-controls').dispatch('click');assert(!el('park-controls').open);assert.equal(s.context.document.activeElement.id,'open-controls');
+  el('open-controls').dispatch('click');assert(el('park-controls').open);el('close-controls').dispatch('click');assert(!el('park-controls').open);assert.equal(s.context.document.activeElement.id,'pk','closing configuration returns focus to the scene after the permanent launcher was removed');
   el('companion-minutes').value='1.5';el('stay-minutes').value='0';el('park-settings').dispatch('submit');assert.equal(el('companion-minutes').attributes['aria-invalid'],'true');assert.equal(el('stay-minutes').attributes['aria-invalid'],'true');assert.equal(s.context.document.activeElement.id,'companion-minutes');assert(el('companion-minutes-label').scrolledIntoView,'invalid field and adjacent error must be brought into view together');
   el('companion-minutes').value='240';el('stay-minutes').value='60';el('park-settings').dispatch('input');el('park-settings').dispatch('submit');assert.equal(w.cycle.settings.companionMinutes,240);assert(el('settings-message').textContent.includes('guardadas'));
   el('panel-pause').dispatch('click');assert(w.api.state().paused);el('panel-hide').dispatch('click');assert(w.api.state().hidden);el('panel-hide').dispatch('click');assert(w.api.state().paused);

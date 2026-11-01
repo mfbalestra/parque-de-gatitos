@@ -290,12 +290,18 @@
     g.save(); g.lineCap = 'round';
     line(g, [[f.x, f.y], [x, y]], '#658a49', .15);
     ellipse(g, f.x + .32, f.y - .35, .35, .13, '#85a659');
-    const colour = f.c === '#ffffff' ? '#fff6dc' : accent(f.c);
+    let colour = f.c === '#ffffff' ? '#fff6dc' : accent(f.c);
+    if (f.prominent) {
+      colour = g.createLinearGradient(x, y - .6, x, y + .6);
+      colour.addColorStop(0, '#fff6dc'); colour.addColorStop(.45, f.c); colour.addColorStop(1, f.c === '#ffffff' ? '#ead7a8' : f.c);
+      g.strokeStyle = '#84603b'; g.lineWidth = .04;
+    }
     for (let k = 0; k < 5; k++) {
       const a = k * TAU / 5;
       ellipse(g, x + Math.cos(a) * .39, y + Math.sin(a) * .32, .3, .24, colour);
+      if (f.prominent) g.stroke();
     }
-    ellipse(g, x, y, .18, .16, '#d7ab5b'); g.restore();
+    ellipse(g, x, y, .18, .16, f.prominent ? '#9b682b' : '#d7ab5b'); g.restore();
   }
 
   function drawYarn(g, o) {

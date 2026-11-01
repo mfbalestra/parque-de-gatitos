@@ -1,0 +1,42 @@
+[
+  {
+    "id": "naranja",
+    "url": "assets/caracol-naranja.png",
+    "sha256": "c4bb16add59e878229b573851683476bb0c026ee4d950ae5d4a923e09ee5cc4c"
+  },
+  {
+    "id": "gris",
+    "url": "assets/caracol-gris.png",
+    "sha256": "6d79ce131825ff4519630deb3fce0b6d419b1b799ed5a050ee2b41882dc7c26d"
+  },
+  {
+    "id": "calico",
+    "url": "assets/caracol-calico.png",
+    "sha256": "534c3b8a120e7cf38664f8405cb62cd607a7d38a6eec32d1452d64f2e5035908"
+  },
+  {
+    "id": "negro",
+    "url": "assets/caracol-negro.png",
+    "sha256": "e6915ec47bce4702c98dbebea272e2f376330c305eeb8ead3bfd1065ada3c6c7"
+  },
+  {
+    "id": "blanco",
+    "url": "assets/caracol-blanco.png",
+    "sha256": "e9c8345296d4a91ab70b1dbc5d0dcd950ec4093ac5bfc72a60d95ddebba55418"
+  },
+  {
+    "id": "tuxedo",
+    "url": "assets/caracol-tuxedo.png",
+    "sha256": "596955998bf67221fd9c407ba46b00a6f87578bad29fe00c4fb6130ff0188981"
+  },
+  {
+    "id": "siames",
+    "url": "assets/caracol-siames.png",
+    "sha256": "a53ce1d1d9eeee9d4116e4b9ceb952f34d8efa5274a0d1c8885e705a51030902"
+  },
+  {
+    "id": "atigrado",
+    "url": "assets/caracol-atigrado.png",
+    "sha256": "c91410817685a02f3f3fad5e345cd4eeb028388b5125e258f1e1d93f45c71572"
+  }
+]

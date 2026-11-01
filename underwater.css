@@ -1,0 +1,6 @@
+/* The secret borrows the existing controls' paper, ink and focus treatment. */
+.secret-active{background:#8bc9dd}
+#secret-flowers{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(100vw,calc(100vh * 16 / 9));aspect-ratio:16/9;pointer-events:none}
+#secret-flowers[hidden]{display:none}
+#secret-flowers button{position:absolute;transform:translate(-50%,-50%);width:44px;height:44px;padding:0;opacity:0;pointer-events:auto}
+#secret-flowers button:focus-visible{opacity:1;background:#fff9ed80;outline:3px solid var(--control-focus)}

@@ -17,19 +17,23 @@ canvas{display:block;width:min(100vw,calc(100vh * 16 / 9));height:auto;aspect-ra
 canvas:focus-visible{outline:3px solid #fff;outline-offset:-6px;box-shadow:0 0 0 3px #183326}
 </style>
 <link rel="stylesheet" href="web-controls.css">
+<link rel="stylesheet" href="underwater.css">
 </head>
-<body>
+<body tabindex="-1" aria-describedby="park-help">
 <main>
 <h1 class="sr-only">Parque de gatitos</h1>
 <canvas id="pk" width="1536" height="864" role="img" tabindex="0" aria-label="Parque ilustrado y animado con gatitos que juegan, ruedan, trepan y se tiran por el tobogán" aria-describedby="park-help park-status"></canvas>
-<p id="park-help" class="sr-only">Tocá o hacé clic para tirar un ovillo. Con el teclado, usá las flechas para apuntar y Enter para tirarlo. Espacio pausa o reanuda la animación.</p>
+<p id="park-help" class="sr-only">Tocá o hacé clic para tirar un ovillo. Con el teclado, usá las flechas para apuntar y Enter para tirarlo. Espacio pausa o reanuda la animación. Clic derecho o pulsación larga sobre el fondo abre el menú de la escena. Con teclado, usá Mayús+F10 o la tecla de menú contextual. Desde el menú podés pausar, ocultar o mostrar la escena y abrir Configuración.</p>
 <p id="park-status" class="sr-only" role="status" aria-live="polite"></p>
-<div class="park-toolbar" role="group" aria-label="Controles de la escena">
-<button id="toggle-pause" type="button">Pausar</button>
-<button id="toggle-hide" type="button">Ocultar</button>
-<button id="open-controls" type="button" aria-haspopup="dialog">Controles</button>
-</div>
+<dialog id="scene-menu" aria-label="Menú de la escena"><div role="menu" aria-label="Acciones de la escena">
+<button id="toggle-pause" type="button" role="menuitem">Pausar</button>
+<button id="toggle-hide" type="button" role="menuitem">Ocultar</button>
+<button id="open-controls" type="button" role="menuitem" aria-haspopup="dialog">Configuración</button>
+<button id="exit-underwater" type="button" role="menuitem" hidden>Volver al parque</button>
+</div></dialog>
 <p id="scene-notice" role="status"></p>
+<p id="underwater-status" class="sr-only" role="status" aria-live="polite"></p>
+<div id="secret-flowers" hidden role="group" aria-label="Flores del parque"><button id="secret-flower-0" type="button" aria-label="Explorar la flor de la izquierda"></button><button id="secret-flower-1" type="button" aria-label="Explorar la flor del centro"></button><button id="secret-flower-2" type="button" aria-label="Explorar la flor de la derecha"></button></div>
 <dialog id="park-controls" aria-labelledby="controls-title" aria-describedby="companion-help">
 <header class="controls-header"><h2 id="controls-title">Controles de gatitos</h2><button id="close-controls" type="button" autofocus>Cerrar</button></header>
 <form id="park-settings" novalidate>
@@ -60,6 +64,7 @@ canvas:focus-visible{outline:3px solid #fff;outline-offset:-6px;box-shadow:0 0 0
 <script src="cat-behavior.js"></script>
 <script src="park-cycle.js"></script>
 <script src="web-controls.js"></script>
+<script src="underwater.js"></script>
 <script>
 (()=>{
 const cv=document.getElementById('pk'),g=cv.getContext('2d');
@@ -70,6 +75,8 @@ const behavior=window.CatBehavior,profile=window.PARK_BEHAVIOR;
 const orangePreview=typeof location!=='undefined'&&new URLSearchParams(location.search).get('orange-preview')==='1';
 const interactionPreview=typeof location!=='undefined'&&new URLSearchParams(location.search).get('interaction-preview')==='1';
 const demoPreview=orangePreview||interactionPreview;
+const snailPreview=orangePreview&&new URLSearchParams(location.search).get('snail-preview')==='1'&&!!window.ParkUnderwater;
+const secretEnabled=!!window.ParkUnderwater&&(!demoPreview||snailPreview);
 let seed=Math.floor(Math.random()*2147483646)+1;const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646};
 const R=(a,b)=>a+rnd()*(b-a),RI=(a,b)=>Math.floor(R(a,b+1)),pick=a=>a[Math.floor(rnd()*a.length)];
 const clampY=y=>Math.max(YMIN,Math.min(YMAX,y));
@@ -386,6 +393,7 @@ g.fillStyle='#2e2a33';g.fillRect(x,y-1,1,3)}
 
 const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
 let t=0,running=!reducedMotion.matches,hidden=false,controls=null,cycle=null;
+let underwater=null,underwaterArt=null,prepareUnderwater=()=>{};
 const aim={x:128,y:124,visible:false},status=document.getElementById('park-status');
 function announce(){status.textContent=running?'Animación en marcha.':'Animación pausada. Presioná Espacio para reanudar.'}
 announce();
@@ -401,13 +409,15 @@ if(!illustrated)for(let k=0;k<8;k++){const a=k*Math.PI/4+t*0.4,on=(Math.floor(t*
 clouds.forEach(c=>window.PARK_DETAILS?.drawCloud?window.PARK_DETAILS.drawCloud(g,c):g.drawImage(cloud,Math.round(c.x),c.y));
 flowers.forEach((f,i)=>{if(window.PARK_DETAILS?.drawFlower){if(i%2===0)window.PARK_DETAILS.drawFlower(g,f,t);return}const sw=Math.round(Math.sin(t*2+f.p)*0.7);px(g,f.x,f.y,'#3f8a30');px(g,f.x+sw*0.5,f.y-1,'#3f8a30');const bx=f.x+sw,by=f.y-3;g.fillStyle=f.c;g.fillRect(bx-1,by,3,1);g.fillRect(bx,by-1,1,3);px(g,bx,by,'#ffe98a')});
 if(window.PARK_DETAILS)window.PARK_DETAILS.drawGround(g,t);
+if(underwater&&cycle?.phase==='visiting'&&window.PARK_DETAILS)window.ParkUnderwater.flowers(g,underwater,window.PARK_DETAILS.drawFlower,t);
 [...(opacity===1?cats:[]),...balls,gymE,box].sort((a,b)=>a.y-b.y).forEach(o=>o.kind==='cat'?drawCat(o):o.kind==='ball'?drawBall(o):o.kind==='gym'?drawGym():drawBox(o));
 sparks.forEach(s=>{const y=s.y-s.t*6;if(window.PARK_DETAILS?.drawSpark){window.PARK_DETAILS.drawSpark(g,s.x,y);return}g.fillStyle='#ffe98a';g.fillRect(Math.round(s.x),Math.round(y)-1,1,3);g.fillRect(Math.round(s.x)-1,Math.round(y),3,1)});
 flies.forEach(drawFly);
 hearts.forEach(h=>{const y=h.y-h.t*12;if(h.t<1.2||Math.floor(h.t*10)%2){if(window.PARK_DETAILS?.drawHeart)window.PARK_DETAILS.drawHeart(g,h.x,y);else pat(HEART,h.x-2,y,'#e8577c',1)}});
 zs.forEach(z=>{const x=z.x+Math.sin(z.t*3)*2,y=z.y-z.t*8;if(window.PARK_DETAILS?.drawSleep)window.PARK_DETAILS.drawSleep(g,x,y);else pat(ZED,x,y,'#ffffff',1)});
 if(aim.visible){g.strokeStyle='#183326';g.lineWidth=1.5;g.strokeRect(aim.x-3,aim.y-3,6,6);g.strokeStyle='#ffffff';g.lineWidth=.5;g.strokeRect(aim.x-3,aim.y-3,6,6)}
-g.restore();if(opacity<1)cats.slice().sort((a,b)=>a.y-b.y).forEach(drawCat);}
+g.restore();if(opacity<1)cats.slice().sort((a,b)=>a.y-b.y).forEach(drawCat);
+if(underwater?.active){window.ParkUnderwater.render(g,underwater,underwaterArt,W,H);if(aim.visible){g.strokeStyle='#183326';g.lineWidth=1.5;g.strokeRect(aim.x-3,aim.y-3,6,6);g.strokeStyle='#ffffff';g.lineWidth=.5;g.strokeRect(aim.x-3,aim.y-3,6,6)}}}
 function parkStep(dt){clouds.forEach(c=>{c.x+=c.v*dt;if(c.x>W+4)c.x=-30});
 cats.forEach(c=>{behavior.tick(c,dt);updCat(c,dt)});pairs.slice().forEach(p=>updatePair(p,dt));balls.forEach(o=>updBall(o,dt));flies.forEach(f=>updFly(f,dt));
 for(let i=hearts.length-1;i>=0;i--){hearts[i].t+=dt;if(hearts[i].t>1.6)hearts.splice(i,1)}
@@ -418,17 +428,25 @@ for(let i=0;i<4;i++)flies.push({kind:'fly',x:R(20,W-20),y:R(60,115),a:R(0,6),t:R
 balls.push(newBall(70,128),newBall(180,118));
 let loaded;
 try{loaded=window.ParkCycle.load(window.localStorage);}catch{loaded=window.ParkCycle.load(null);}
+if(snailPreview)loaded.settings={...loaded.settings,cats:4};
 for(let i=0;i<(orangePreview?4:interactionPreview?8:loaded.settings.cats);i++)cats.push(newCat(R(14,W-14),R(YMIN,YMAX)));
 
 function throwBall(x,y){
 const o=newBall(Math.max(6,Math.min(W-6,x)),y);o.vy=-10;balls.push(o);if(balls.length>7)balls.shift();
 cats.filter(c=>FREE.includes(c.st)&&!c.pair&&c.cooldown<=0).sort((a,b)=>Math.hypot(a.x-o.x,a.y-o.y)-Math.hypot(b.x-o.x,b.y-o.y)).slice(0,4).forEach(c=>{c.st='chase';c.tgt=o;c.tm=6})}
 const canPlay=()=>cycle.phase==='visiting'&&!hidden&&!document.hidden;
-cv.addEventListener('click',e=>{if(!canPlay())return;const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=clampY((e.clientY-r.top)/r.height*H);aim.visible=false;throwBall(x,y);render()});
+function interact(x,y){
+  const radius=Math.max(4.5,22*W/cv.getBoundingClientRect().width);
+  if(underwater?.active){underwater.touch(x,y,radius,canPlay()&&running);return;}
+  if(underwater){const index=underwater.hitFlower(x,y,radius);if(index>=0){selectFlower(index);return;}}
+  throwBall(x,clampY(y));
+}
+function selectFlower(index){if(underwater.select(index,cats,canPlay()&&running))prepareUnderwater();}
+cv.addEventListener('click',e=>{if(!canPlay())return;const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;aim.visible=false;interact(x,y);render()});
 cv.addEventListener('keydown',e=>{
 if(e.key===' '){e.preventDefault();if(!e.repeat){running=!running;announce();refreshLoop()}return}
 if(!canPlay())return;
-if(e.key==='Enter'){e.preventDefault();aim.visible=true;throwBall(aim.x,aim.y);render();return}
+if(e.key==='Enter'){e.preventDefault();aim.visible=true;interact(aim.x,aim.y);render();return}
 const offset={ArrowLeft:[-6,0],ArrowRight:[6,0],ArrowUp:[0,-6],ArrowDown:[0,6]}[e.key];
 if(offset){e.preventDefault();aim.x=Math.max(6,Math.min(W-6,aim.x+offset[0]));aim.y=clampY(aim.y+offset[1]);aim.visible=true;render()}
 });
@@ -446,24 +464,28 @@ cycle=new window.ParkCycle.Cycle(loaded.settings,{
   leave(dt){let arrived=true;cats.forEach((c,i)=>{if(!travel(c,homes[i],141,dt))arrived=false;});return arrived;},
   resumeCompanion(){cats.forEach(resetVisitor);},
   companion(dt){for(const c of cats){behavior.tick(c,dt);updCat(c,dt);}pairs.slice().forEach(p=>updatePair(p,dt));},
-  phaseChanged(phase){if(phase==='visiting'||phase==='companion')cats.forEach(choose);if(phase==='companion')document.body.classList.add('companion-scene');else document.body.classList.remove('companion-scene');controls?.refresh();}
+  phaseChanged(phase){underwater?.clear();if(phase==='visiting'||phase==='companion')cats.forEach(choose);if(phase==='companion')document.body.classList.add('companion-scene');else document.body.classList.remove('companion-scene');controls?.refresh();if(underwater)updateNotice();}
 });
-function step(dt){t+=dt;cycle.advance(dt);}
+function step(dt){if(underwater?.activate(cats,canPlay()&&running))api.focusScene();if(underwater?.active){underwater.advance(dt,active());return;}underwater?.advance(dt,active());t+=dt;cycle.advance(dt);}
 let last=performance.now(),accumulator=0,frameId=null,lastStatus=-1;
 const pacer=new window.ParkCycle.FramePacer(cycle.settings.fps);
 const active=()=>running&&!hidden&&!document.hidden;
-function updateNotice(){document.getElementById('scene-notice').textContent=hidden?'Escena oculta. Usá Mostrar para volver.':!running?'Animación en pausa. Usá Reanudar para continuar.':loaded.message;}
+function updateNotice(){document.getElementById('scene-notice').textContent=hidden?'Escena oculta. Abrí el menú sobre el fondo para mostrarla.':!running?'Animación en pausa. Espacio o el menú del fondo permiten reanudar.':underwater?.error||loaded.message;
+if(underwater){document.body.classList.toggle('secret-active',underwater.active);document.getElementById('secret-flowers').hidden=underwater.active||!canPlay();for(let i=0;i<3;i++){const button=document.getElementById('secret-flower-'+i);button.disabled=!running||!!underwater.error;button.setAttribute('aria-pressed',String(underwater.selected.has(i)));}document.getElementById('underwater-status').textContent=underwater.phase==='flooding'?'El agua está subiendo…':underwater.phase==='draining'?'El agua está bajando…':underwater.active?'Un parque bajo el agua. Doble clic o doble toque en el fondo, o Escape, vuelve al parque.':underwater.selected.size===3&&!underwater.ready&&!underwater.error?'Preparando el mundo submarino…':'';}}
 function loop(now){frameId=null;if(!active())return;const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;accumulator+=dt;
 while(accumulator+1e-10>=1/60){step(1/60);accumulator-=1/60;}
 if(pacer.shouldRender(now))render();
 if(Math.floor(t)!==lastStatus){lastStatus=Math.floor(t);controls?.refresh();}
 frameId=requestAnimationFrame(loop);}
 function refreshLoop(){if(frameId!==null){cancelAnimationFrame(frameId);frameId=null;}last=performance.now();pacer.configure(cycle.settings.fps);accumulator=0;render();controls?.refresh();updateNotice();if(active())frameId=requestAnimationFrame(loop);}
-const api={state:()=>({settings:{...cycle.settings},phase:cycle.phase,elapsed:cycle.elapsed,status:cycle.status(),revisit:cycle.revisit,paused:!running,hidden,background:!!document.hidden}),
+const api={state:()=>({settings:{...cycle.settings},fixedCount:snailPreview,underwater:!!underwater?.active,phase:cycle.phase,elapsed:cycle.elapsed,status:underwater?.active?'Parque bajo el agua · reloj del parque detenido':cycle.status(),revisit:cycle.revisit,paused:!running,hidden,background:!!document.hidden}),
+focusScene(){(hidden?document.body:cv).focus?.();},
+isBackground(clientX,clientY){if(hidden)return true;const r=cv.getBoundingClientRect(),x=(clientX-r.left)/r.width*W,y=(clientY-r.top)/r.height*H,radius=Math.max(4.5,22*W/r.width);if(x<0||x>W||y<0||y>H)return true;if(underwater?.active)return !underwater.hitActor(x,y,radius);if(underwater&&cycle.phase==='visiting'&&underwater.hitFlower(x,y,radius)>=0)return false;return !cats.some(c=>Math.hypot(c.x-x,c.y-c.z-8-y)<Math.max(radius,16));},
+exitSecret(){if(underwater?.exit())refreshLoop();},
 togglePause(){running=!running;announce();refreshLoop();},
 toggleHide(){hidden=!hidden;document.body.classList.toggle('scene-hidden',hidden);cv.tabIndex=hidden?-1:0;cv.setAttribute('aria-hidden',String(hidden));refreshLoop();},
-visit(){cycle.visit();refreshLoop();},back(){cycle.back();refreshLoop();},
-save(settings){if(demoPreview)return 'La demostración no guarda preferencias.';if(cycle.phase!=='companion'&&settings.cats!==cycle.settings.cats)return 'Volvé a la compañía para cambiar la cantidad.';let error;try{error=window.ParkCycle.save(window.localStorage,settings);}catch{error='No se pudo guardar en este navegador. Las preferencias aplicadas siguen iguales.';}if(error)return error;
+visit(){if(!underwater?.active)cycle.visit();refreshLoop();},back(){if(!underwater?.exit(true))cycle.back();refreshLoop();},
+save(settings){if(demoPreview&&!snailPreview)return 'La demostración no guarda preferencias.';if(snailPreview&&settings.cats!==4)return 'Esta vista muestra cuatro gatos naranjas. La cantidad se cambia en el parque habitual.';if(cycle.phase!=='companion'&&settings.cats!==cycle.settings.cats)return 'Volvé a la compañía para cambiar la cantidad.';let error;try{error=window.ParkCycle.save(window.localStorage,settings);}catch{error='No se pudo guardar en este navegador. Las preferencias aplicadas siguen iguales.';}if(error)return error;
 const changed=settings.cats!==cycle.settings.cats;cycle.configure(settings);if(changed&&!orangePreview){cancelPairs();cats.length=0;box.cat=null;for(let i=0;i<settings.cats;i++){const c=newCat(R(14,W-14),141);resetVisitor(c);choose(c);cats.push(c);}box.cat=null;homes=cats.map(c=>c.x);}loaded.message='';refreshLoop();return null;}};
 if(demoPreview)window.interactionDemo=window.orangeDemo={
  choose(action,coatIndex=0){if(!['knead','settle','rub','cuddle','spar'].includes(action))return false;if(cats.some(c=>c.motion||c.z||c.onS))return false;const actor=cats.find(c=>c.artIndex===coatIndex);if(!actor)return false;cancelPairs();box.cat=null;
@@ -475,6 +497,17 @@ if(demoPreview)window.interactionDemo=window.orangeDemo={
  setFps(fps){if(fps!==30&&fps!==60)return false;cycle.configure({...cycle.settings,fps});refreshLoop();return true;},
  snapshot(){return {phase:cycle.phase,fps:cycle.settings.fps,cats:cats.map(c=>({x:c.x,y:c.y,st:c.st,pose:c.fk,remaining:c.pair?null:c.tm,direction:c.dir,partner:c.pair?cats.indexOf(c.pair.cats.find(o=>o!==c)):-1,energy:c.energy,cooldown:c.cooldown,paired:!!c.pair})),pairs:pairs.map(p=>({action:p.action,phase:p.phase,remaining:p.phase==='approach'?Math.max(0,20-p.time):p.time,actors:p.cats.map(c=>cats.indexOf(c))}))};}
 };
+if(secretEnabled){
+  underwater=new window.ParkUnderwater.Secret({reducedMotion:reducedMotion.matches,onChange(){updateNotice();controls?.refresh();},onExit(back){if(back)cycle.back();else if(!hidden)cv.focus?.();}});
+  document.getElementById('park-help').textContent+=' Hay flores para explorar a la izquierda, en el centro y a la derecha del césped. Apuntá con las flechas y tocá Enter. Bajo el agua, tocá un caracol para que se esconda; doble clic o doble toque sobre el fondo vacío, o Escape, vuelve al parque.';
+  window.ParkUnderwater.FLOWERS.forEach((flower,i)=>{const button=document.getElementById('secret-flower-'+i),target=window.ParkUnderwater.flowerTarget(flower);button.setAttribute('style',`left:${target.x/W*100}%;top:${target.y/H*100}%;width:max(44px,${target.radius*2/W*100}%);height:max(44px,${target.radius*2/H*100}%)`);button.addEventListener('click',()=>{selectFlower(i);if(underwater.active)api.focusScene();render();});});
+  reducedMotion.addEventListener('change',e=>{underwater.reducedMotion=e.matches;});
+  let requested=false;
+  const fail=()=>{underwater.error='No se pudo cargar el mundo submarino. Recargá la página para volver a intentarlo.';updateNotice();};
+  const prepare=()=>window.ParkUnderwater.loadArt(window.PARK_SNAIL_ART).then(art=>{underwaterArt=art;underwater.margins=art.coats.map(coat=>coat.margin);underwater.ready=true;if(underwater.activate(cats,canPlay()&&running))api.focusScene();refreshLoop();}).catch(fail);
+  prepareUnderwater=()=>{if(requested)return;requested=true;if(window.PARK_SNAIL_ART)prepare();else {const script=document.createElement('script');script.src='snail-art-data.js';script.onload=prepare;script.onerror=fail;document.head.appendChild(script);}};
+  window.snailDemo={snapshot:()=>underwater.snapshot(),exit:()=>{underwater.exit();refreshLoop();}};
+}
 controls=window.createWebControls(api,loaded.message);
 document.addEventListener('visibilitychange',refreshLoop);
 window.parkArtChanged=()=>{render();};

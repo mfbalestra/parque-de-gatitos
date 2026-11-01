@@ -14,13 +14,13 @@ También podés usar el teclado: Tab enfoca el parque, las flechas mueven el pun
 
 ## Compañía y controles
 
-**Controles** abre la configuración. Podés elegir 30 o 60 FPS y los minutos de compañía (1–240) y de estadía en el parque (1–60). Los valores iniciales de la web son ocho gatos, 60 FPS, 30 minutos de compañía y cinco de parque. La frecuencia es un objetivo de dibujo: no altera la velocidad ni garantiza que una pantalla o navegador alcance esa frecuencia.
+La escena no tiene botones permanentes. Un clic derecho o una pulsación larga sobre el fondo abre el menú; con teclado, usá Mayús+F10 o la tecla de menú contextual. Las flechas recorren las opciones; Escape o un clic fuera cierran el menú. Desde allí, **Configuración** abre las preferencias. Podés elegir 30 o 60 FPS y los minutos de compañía (1–240) y de estadía en el parque (1–60). Los valores iniciales de la web son ocho gatos, 60 FPS, 30 minutos de compañía y cinco de parque. La frecuencia es un objetivo de dibujo: no altera la velocidad ni garantiza que una pantalla o navegador alcance esa frecuencia.
 
 **Volver a la compañía** lleva los mismos gatos al borde inferior de la escena. Allí podés elegir uno, cuatro u ocho gatos y guardar. Si mantenés la cantidad, conservan sus posiciones. **Ir al parque ahora** adelanta la visita; también se inicia al terminar el intervalo de compañía. El parque aparece gradualmente y los gatos caminan hasta el césped; la estadía comienza después de que todos llegan. Al finalizar vuelven a la franja y el parque desaparece. Las órdenes repetidas conservan la transición en curso; pedir una visita durante la salida prepara otra al terminar la vuelta.
 
 La compañía funciona **dentro de esta pestaña**. Una página normal no coloca gatos sobre otros programas ni implementa la bandeja o el paso de clics de Windows. Mientras están en el parque se conservan sus juegos; en la franja pasean y descansan.
 
-**Pausar** y **Ocultar** detienen animación y reloj. Cambiar de pestaña también los detiene; al volver no se acumulan visitas por el tiempo ausente. Mostrar conserva una pausa previa. Los botones exteriores permiten reanudar o mostrar sin entrar en la configuración.
+**Pausar** y **Ocultar**, disponibles en el menú contextual y en la configuración, detienen animación y reloj. Cambiar de pestaña también los detiene; al volver no se acumulan visitas por el tiempo ausente. Mostrar conserva una pausa previa. El menú también se puede abrir sobre el fondo cuando los gatos están ocultos, para volver a mostrarlos.
 
 **Guardar preferencias** conserva los valores juntos en el almacenamiento local de este navegador y de esta dirección. No envía datos ni modifica la configuración de la app de Windows. El ciclo mantiene el tiempo ya transcurrido: si el nuevo límite ya venció, la transición empieza al continuar. Los valores inválidos se señalan junto a los campos; si el navegador no permite guardar, se informa el error y siguen aplicadas las preferencias anteriores. Una configuración guardada ilegible vuelve a los valores iniciales con un aviso. Cerrar y volver a abrir la página inicia una nueva estadía en el parque con las preferencias guardadas.
 
@@ -42,9 +42,19 @@ Para inspeccionarlos, abrí `index.html?interaction-preview=1` desde el servidor
 
 Las duraciones, pesos iniciales, separaciones de contacto y límites de parejas viven en `behavior-profile.js`, que Windows también lee como datos. Dormir tiene menos peso que sentarse, asearse o pasear; la energía y el contexto siguen modulando esas preferencias. Las dos simulaciones conservan sus movimientos y juegos propios; no prometen la misma secuencia de decisiones. Las nuevas imágenes completas y sus recortes se documentan en [INTERACTION-ART.md](assets/INTERACTION-ART.md).
 
+## Secreto submarino
+
+Las tres flores del secreto son más grandes que las decorativas: blanca a la izquierda, amarilla en el centro y rosada a la derecha. Al tocar una queda iluminada, con una marca de confirmación; volver a tocarla no suma otra selección. Ese estado se conserva hasta completar el secreto y se limpia al volver al parque, abandonar la visita o recargar. El área de toque acompaña al tamaño de la flor y conserva al menos 44 píxeles. El teclado también informa cuáles ya contaron.
+
+El secreto está disponible en la página habitual. Tocá las tres flores distintas, en cualquier orden, para subir el agua: aparecen la piedra de Patricio y la piña de Bob, y cada gato se transforma en su caracol del mismo pelaje. Funciona con uno, cuatro u ocho gatos. Los caracoles avanzan despacio y se esconden un momento al tocarlos. Un doble clic o doble toque sobre el fondo vacío, o Escape con los menús cerrados, vacía el agua y recupera el estado anterior. El menú contextual también ofrece **Volver al parque** mientras está activo el secreto. Tocar un caracol conserva su interacción y no cuenta como un toque sobre el fondo. Durante el secreto, el reloj del parque y los gatos normales quedan suspendidos; la pausa y la ocultación siguen funcionando desde el menú contextual. Salir durante una pausa prepara el drenaje, que continúa al reanudar.
+
+Hay ocho variedades: naranja, gris, calicó, negro, blanco, blanco y negro, siamés y atigrado marrón. Las imágenes del secreto se descargan al tocar la primera flor. Los toques se conservan mientras cargan; el agua espera a que esté todo listo y a que la escena esté visible y en marcha. Si abandonás la visita durante la carga, se borra la selección. Si falla una imagen, el parque sigue disponible y un aviso pide recargar; no se sustituye un pelaje por otro.
+
+Usar las flores y volver no modifica las preferencias. `index.html?orange-preview=1&snail-preview=1` conserva la muestra de cuatro naranjas para inspección. El origen, los prompts, las huellas de los archivos y los recortes están en [SNAIL-ART.md](assets/SNAIL-ART.md). `underwater.js` y `underwater.css` gestionan la escena; `snail-art-data.js` describe las ocho láminas completas y el fondo.
+
 ## Abrir una copia local
 
-Descargá la carpeta completa. Conservá junto a `index.html` los archivos `art-data.js`, `walk-data.js`, `interaction-art-data.js`, `scene-art.js`, `behavior-profile.js`, `cat-behavior.js`, `park-details.js`, `park-cycle.js`, `web-controls.js`, `web-controls.css` y la carpeta `assets`. Son recursos relativos y no necesitan servicios externos. Para desarrollo, serví esa carpeta con un servidor HTTP local. La apertura directa desde disco depende de las reglas de almacenamiento del navegador; la comprobación de entrega usa HTTP.
+Descargá la carpeta completa. Conservá junto a `index.html` los archivos `art-data.js`, `walk-data.js`, `interaction-art-data.js`, `scene-art.js`, `behavior-profile.js`, `cat-behavior.js`, `park-details.js`, `park-cycle.js`, `web-controls.js`, `web-controls.css`, `underwater.js`, `underwater.css`, `snail-art-data.js` y la carpeta `assets`. Son recursos relativos y no necesitan servicios externos. Para desarrollo, serví esa carpeta con un servidor HTTP local. La apertura directa desde disco depende de las reglas de almacenamiento del navegador; la comprobación de entrega usa HTTP.
 
 ## Cómo está hecho
 
@@ -74,9 +84,13 @@ node tests/spatial.cjs
 node tests/group.cjs
 node tests/awake.cjs
 node tests/interactions.cjs
+node tests/underwater.cjs
+node tests/context-menu.cjs
 ```
 
 La primera prueba verifica las actividades, las coordenadas del puntero, el límite de ovillos y el teclado. La segunda comprueba los cinco disparadores de salto, la continuidad, la gravedad, las fases, el aterrizaje y el apoyo estable al rascar, a distintas frecuencias de actualización y durante recorridos prolongados. La tercera comprueba los ocho pelajes, los recortes, la transparencia declarada por los PNG, el apoyo, la inversión de dirección y el respaldo ante recursos inválidos.
+
+La prueba del menú comprueba que los dobles toques sobre fondo se distingan de los toques sobre actores, que mantener pulsado no dispare una interacción al soltar, y que ocultar y volver a mostrar conserve la pausa y el foco.
 
 Las nuevas pruebas de caminata comprueban los 64 cuadros, la escala uniforme, el anclaje, la fase periódica por distancia y la procedencia de los recursos. Las de controles verifican preferencias, transiciones, suspensión y separación entre simulación y frecuencia de dibujo. La comprobación visual y de teclado se realiza además sobre la página completa, con el diálogo abierto y cerrado, las transiciones y el movimiento reducido.
 

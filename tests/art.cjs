@@ -8,7 +8,7 @@ for(const name of fs.readdirSync(path.join(root,'assets')).filter(name=>name.end
   const png=fs.readFileSync(path.join(root,'assets',name));
   assert.equal(png.subarray(1,4).toString(),'PNG');
   dimensions.set('assets/'+name,[png.readUInt32BE(16),png.readUInt32BE(20)]);
-  if(name!=='parque.png')assert.equal(png[25],6,'cat PNG must have a real alpha channel');
+  if(!['parque.png','parque-submarino.png'].includes(name))assert.equal(png[25],6,'cat PNG must have a real alpha channel');
 }
 function load(fail=false){
   class Image{

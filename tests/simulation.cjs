@@ -15,7 +15,7 @@ function makeSimulation(html,options={}){
     classList:{add:name=>classes.add(name),remove:name=>classes.delete(name),toggle(name,on){if(on===undefined)on=!classes.has(name);if(on)classes.add(name);else classes.delete(name);return on;}},
     addEventListener:(name,fn)=>{events[name]=fn},setAttribute:(name,value)=>{attributes[name]=value},removeAttribute:name=>delete attributes[name],focus(){document.activeElement=node},closest:()=>element(id+'-label'),scrollIntoView(){node.scrolledIntoView=true;},showModal(){node.open=true;},close(){node.open=false;events.close?.();},
     dispatch(name,extra={}){events[name]?.({preventDefault(){},...extra});}};elements.set(id,node);return node;};
-  Object.assign(canvas,{setAttribute:element('canvas-attributes').setAttribute});
+  Object.assign(canvas,{id:'pk',focus(){document.activeElement=canvas;},setAttribute:element('canvas-attributes').setAttribute});
   const status=element('park-status');let frame,now=0,frameId=0;const pending=new Map();
   const document={hidden:false,body:element('body'),activeElement:null,getElementById:id=>id==='pk'?canvas:element(id),createElement:()=>({...canvas}),addEventListener:(name,fn)=>{documentListeners[name]=fn}};
   let randomSeed=options.seed||7123;const math=Object.create(Math);math.random=()=>{randomSeed=randomSeed*16807%2147483647;return (randomSeed-1)/2147483646;};
